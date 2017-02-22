@@ -1,0 +1,35 @@
+# About
+DCDC-ACDC-Converter_RevC_20Jul2012.mod
+
+
+Contains the KiCAD module/footprint of some
+ACDC- and DCDC-Converters.
+
+
+DCDC-Conv_CINCON_EC6C11_18-36Vto5V5A_RevA
+DCDC-Conv_CINCON_EC5BE12_18-36VDCto12VDC1250mA_RevA
+DCDC-CONV_ST_GS-R400V-2_Obsolete_RevA_24Mar2011
+DCDC-Conv_TRACO_TEN10-1212_9-18VDCto12VDC830mA_RevA
+DCDC-Conv_TRACO_TEN10-xxxx_RevA
+DCDC-Conv_TRACO_TED-xxxx_Single_RevA
+DCDC-Conv_TRACO_TED-xxxx_Dual_RevA
+DCDC-Conv_TRACO_TED-1212_Single_9-18VDCto12VDC160mA_RevA
+DCDC-Conv_Traco_TME05xx_TME12xx_RevA_27Mar2011
+DCDC-Conv_Traco_TME24xx_RevA_27Mar2011
+DCDC-Conv_TRACO_TMH-xxxx_Single_RevB_06Apr2011
+DCDC-Conv_TRACO_TMH-xxxx_Dual_RevB_06Apr2011
+DCDC-Conv_DELTA_DPS05U09D_5VDCto9VDC_RevA_28Mar2011
+DCDC-Conv_BOTHHAND_CF-Serie_RevA_28Mar2011
+
+Now added:
+ACDC-CONVERTER_TRACO-TMLM-04_REVC_20JUL2012
+ACDC-CONVERTER_TRACO-TMLM-05_REVC_20JUL2012
+ACDC-CONVERTER_TRACO-TMLM-10-20_REVC_20JUL2012
+
+The Symbols for this modules are also added to the 
+old library. The name of the actual library is now:
+Symbols_DCDC-ACDC-Converter_RevC_20Jul2012.lib
+
+Author: Bernd Wiebus / Uedem / Germany / 20 Jul 2012
+GNU-GPL, NO WARRANTY!
+
