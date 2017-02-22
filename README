@@ -1,16 +1,21 @@
-This code is intended for use with an Arduino Mega 2560, the dmx-arduino Board
-Rev II designed by Cyril Danilesvski and the line driver daughter board, 2014. 
-Updated by Tom Jones, 2015.
+This repository contains the full source code and hardware designs for the
+Arduino shield used for teaching DMX at the University of Aberdeen. The Arduino
+Mega 2560 compatible shield allows an Ardunio to operate as either a DMX bus
+master or slave.
 
-#Uploading the code
+The dmx-arduino Board (Rev I and II) was designed by Cyril Danilesvski in 2014.
+The software was written and is updated by Tom Jones, 2015-2017.
 
-Open the arduion project from dmxcontroller/dmxcontroller.ino.
+# Uploading the code
 
-Import the libraries from the libraries/ into the arduino ide. 
+Open the Arduino project from dmxcontroller/dmxcontroller.ino.
+
+Import the libraries from the libraries/ into the Arduino ide. It is very
+important that you do not allow the aruduino ide to update these libraries.
 
 Compile and upload.
 
-#Operation
+# Operation
 
 Program mode and dmx addressing are controlled by the 12 dip switches on the
 main sheild pcb. Program status is indicated using the three LEDs in most
@@ -28,7 +33,7 @@ When the main loop of the program detects a change in program mode the green
 LED will be flashed momentarily. This flash can be difficult to see when
 turning off DIP switches, but is easier to see when turning on DIP switches.
 
-##DIP Switches
+## DIP Switches
 
 The 12 dip switches form a 12 bit number with the MSB starting with switch 1.
 The program mode is encoded in the top three bits of the dip switches and the
