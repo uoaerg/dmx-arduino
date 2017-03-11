@@ -31,7 +31,7 @@
 // ----- Debugging -----
 
 // to debug on an oscilloscope, enable this
-#define SCOPEDEBUG
+//#define SCOPEDEBUG
 #ifdef SCOPEDEBUG
 //#define DmxTriggerPin 4	// low spike at beginning of start byte
 #define DmxTriggerPin 8	// low spike at beginning of start byte
