@@ -35,6 +35,8 @@ extern "C" {
 #include "dip.h"
 }
 
+#define GIT "not set" /* please set manually before flashing*/
+
 #define DMXADDRESSMAX 513 	/* maximum number of channels read in a frame */
 #define DMXTIMEOUT 1000		/* One Second timeout to take receiver off-line */
 
@@ -137,7 +139,7 @@ setup()
 	Serial.begin(9600);
 
 	Serial.println("---------------------------------------------------------");
-	Serial.print("SVN REV at build: 26");
+	Serial.println("build: " GIT);
 
 	Serial.print("DMX Address: b");
 	Serial.print(dipReadAddress(), BIN);
