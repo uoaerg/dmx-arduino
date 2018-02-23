@@ -218,10 +218,14 @@ loop()
 
 			/* If we have started the test program, enable dmx control */
 			/* This sets the line driver to transmit and starts sending */
-			if(newprogram == testmain) 
+			if(newprogram == testmain) {
 				DMXSerial.init(DMXController);
-			else if(program == testmain)
+				/* 0 each slot to make DMXSerial always send a full frame */
+				for (int i = 0; i < 512; i++)
+					DMXSerial.write(i+1, 0x00);
+			} else if(program == testmain) {
 				DMXSerial.init(DMXReceiver);
+			}
 
 			program = newprogram;
 
