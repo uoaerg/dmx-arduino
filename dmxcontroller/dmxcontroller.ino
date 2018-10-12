@@ -31,38 +31,19 @@
 #include <Adafruit_NeoPixel.h>
 
 extern "C" {
+#include "dmxboard.h"
 #include "pins.h"
 #include "dip.h"
 }
 
-#define GIT "not set" /* please set manually before flashing*/
-
 #define DMXADDRESSMAX 513 	/* maximum number of channels read in a frame */
 #define DMXTIMEOUT 1000		/* One Second timeout to take receiver off-line */
-
-/* -------------------- delete all of this post merge -----------------------*/
-/* These need to move into a header*/
-
-void runMenu(void);
-void setupMenu(void);
-int getMenuDMXAddress(void);
-void setDMXChannels(int [], int);
-
-#define RELAYCOUNT 4
-
-void runMenu(){}
-void setupMenu(){}
-int getMenuDMXAddress(){ return 1;}
-void setDMXChannels(int two[], int one){}
-
-/* -------------------------------------------------------------------------*/
 
 void testmain(void);
 void digitalmain(void);
 void pwmmain(void);
 void servomain(void);
 void neopixelmain(void);
-void relayboxmain(void);
 void defaultprogram(void);
 
 void readDMXChannels(int *, uint16_t );
@@ -91,7 +72,7 @@ void (*programs[NUMPROGRAMS])(void) = {
 	pwmmain,	/* Mode 2 */
 	servomain,	/* Mode 3 */
 	neopixelmain,	/* Mode 4 */
-	relayboxmain,	/* Mode 5 */
+	defaultprogram,	/* Mode 5 */
 	defaultprogram,	/* Mode 6 */
 	defaultprogram,	/* Mode 7 */
 };
@@ -134,12 +115,11 @@ setup()
 		pinMode(servopins[i], OUTPUT);
 	}
 
-	setupMenu();
-
 	Serial.begin(9600);
 
 	Serial.println("---------------------------------------------------------");
 	Serial.println("build: " GIT);
+	Serial.println("board: " DMXBOARDREV);
 
 	Serial.print("DMX Address: b");
 	Serial.print(dipReadAddress(), BIN);
@@ -195,7 +175,7 @@ loop()
 {
 	static int led = 0;
 
-	dmxAddress = (program == relayboxmain) ? getMenuDMXAddress() : dipReadAddress();
+	dmxAddress = dipReadAddress();
 	dmxMode = dipReadMode();
 
 	if(dmxMode >= 0 && dmxMode < NUMPROGRAMS) {
@@ -348,13 +328,11 @@ digitalmain()
 	else
 		digitalWrite(YELLOW_LED, LOW);	
 
-
-	/* DEPIN pins go HIGH on digital LOW */
 	for(int i = 0;i < DEPINS_MAX; i++)
 		if(values[i] > 128)
-			digitalWrite(depins[i], LOW); 
+			digitalWrite(depins[i], DEHIGH);
 		else
-			digitalWrite(depins[i], HIGH);
+			digitalWrite(depins[i], DELOW);
 }
 
 /* ************************************************* */
@@ -436,35 +414,12 @@ neopixelmain()
 	strip.show();
 }
 
-/* ************************************************* */
-/* Program to operate relays. Relays are triggered   */
-/* when the dmx value is great than 128 and they are */
-/* enabled via the on board lcd menu. All of this    */
-/* happens in runMenu() */
-void
-relayboxmain()
-{
-	int values[RELAYCOUNT];
-	readDMXChannels(values, RELAYCOUNT);
-
-	if(values[0] > 0)
-		digitalWrite(YELLOW_LED, HIGH);	
-	else
-		digitalWrite(YELLOW_LED, LOW);	
-
-	setDMXChannels(values, RELAYCOUNT);
-	runMenu();
-}
-
 /* Reads a set of DMX channels from the DMX frames *
  * starting at the configured DMX base address 
  * DMX base zero could in future be used for RDM support */
 void
 readDMXChannels(int *dmxvalues, uint16_t dmxchannels)
 {
-	//if(dmxchannels == 0 || (dmxchannels+dmxAddress) > DMXADDRESSMAX)
-		//return;
-
 	int max = dmxAddress+dmxchannels;
 
 	for(uint16_t i = dmxAddress, j = 0; i < max; i++, j++)

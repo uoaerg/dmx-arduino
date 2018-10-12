@@ -25,8 +25,10 @@
  *
  */
 
-#ifndef TEST_H
-#define TEST_H
+#ifndef PINS_H
+#define PINS_H
+
+#include "dmxboard.h"
 
 /* Board status LEDs */
 #define GREEN_LED A0
@@ -89,6 +91,8 @@ static int pwmpins[PWMPINS_MAX] =
 #define DEENABLE1 3
 #define DEENABLE2 4
 
+#if REV == REV_II
+
 #define DE1PIN1 26
 #define DE1PIN2 24
 #define DE1PIN3 25
@@ -97,6 +101,26 @@ static int pwmpins[PWMPINS_MAX] =
 #define DE1PIN6 27
 #define DE1PIN7 28
 #define DE1PIN8 29
+
+/* REV_II DEPINS are routed through an inverting buffer */
+#define DEHIGH LOW
+#define DELOW HIGH
+
+#elif REV == REV_IIIA
+
+#define DE1PIN1 24
+#define DE1PIN2 22
+#define DE1PIN3 27
+#define DE1PIN4 30
+#define DE1PIN5 31
+#define DE1PIN6 26
+#define DE1PIN7 29
+#define DE1PIN8 28
+
+#define DEHIGH HIGH
+#define DELOW LOW
+
+#endif
 
 static int de1pins[DEPINS_MAX] = 
 {
@@ -115,6 +139,8 @@ static int de1pins[DEPINS_MAX] =
 /* DIP Switch mapping to I/O pins */
 #define DIPMAX 12
 
+#if REV == REV_II
+
 #define DIP1 37
 #define DIP2 36
 #define DIP3 35
@@ -127,6 +153,28 @@ static int de1pins[DEPINS_MAX] =
 #define DIP10 39 
 #define DIP11 40 
 #define DIP12 41
+
+#elif REV == REV_IIIA
+
+#pragma message "in rev 3 block"
+
+#define DIP1 49
+#define DIP2 48
+#define DIP3 47
+#define DIP4 43
+#define DIP5 42
+#define DIP6 41
+#define DIP7 40
+#define DIP8 39
+#define DIP9 38
+#define DIP10 37
+#define DIP11 36
+#define DIP12 34
+
+#else
+#error "please set board revision"
+
+#endif // REV switch
 
 static int dipSwitches[DIPMAX] = 
 {
@@ -149,4 +197,4 @@ static int dipSwitches[DIPMAX] =
 uint8_t dmxMode;
 uint16_t dmxAddress;
 
-#endif	//TEST_H
+#endif	//PINS_H
