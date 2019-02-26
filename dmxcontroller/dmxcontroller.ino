@@ -44,9 +44,11 @@ void digitalmain(void);
 void pwmmain(void);
 void servomain(void);
 void neopixelmain(void);
+void steppermain(void);
 void defaultprogram(void);
 
 void readDMXChannels(int *, uint16_t );
+void stepmotor(int *motorpins, int *motorsteps, int direction, int step);
 
 uint8_t readRed(uint8_t);
 uint8_t readGreen(uint8_t);
@@ -72,7 +74,7 @@ void (*programs[NUMPROGRAMS])(void) = {
 	pwmmain,	/* Mode 2 */
 	servomain,	/* Mode 3 */
 	neopixelmain,	/* Mode 4 */
-	defaultprogram,	/* Mode 5 */
+	steppermain,	/* Mode 5 */
 	defaultprogram,	/* Mode 6 */
 	defaultprogram,	/* Mode 7 */
 };
@@ -113,6 +115,10 @@ setup()
 
 	for(int i = 0;i < SERVOPINS_MAX; i++) {
 		pinMode(servopins[i], OUTPUT);
+	}
+
+	for(int i = 0;i < STEPPERPINS_MAX; i++) {
+		pinMode(stepperpins[i], OUTPUT);
 	}
 
 	Serial.begin(9600);
@@ -419,6 +425,107 @@ neopixelmain()
 	}
 
 	strip.show();
+}
+
+void
+steppermain()
+{
+	static int stepperposition = 0;
+	uint16_t stepdelay = 25600;
+	int clockwise = 1;
+
+	int values[STEPPERCHANNELS];
+	readDMXChannels(values, STEPPERCHANNELS);
+
+	int validstepperindex = 0;
+	int stepperindex = 0;
+
+	if(values[0] > 0)
+		digitalWrite(YELLOW_LED, HIGH);
+	else
+		digitalWrite(YELLOW_LED, LOW);
+
+	if (values[STEPPER_INDEX_MODE] == 0 ) {
+		if (values[STEPPER_ROTATION_SPEED] == 0)
+			return;
+		if (values[STEPPER_ROTATION_DIRECTION] == 0 ||
+			(values[STEPPER_ROTATION_DIRECTION] >= 125 &&
+				values[STEPPER_ROTATION_DIRECTION] <= 131))
+			return;
+
+		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
+		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
+
+		if (values[STEPPER_ROTATION_DIRECTION] > 193 ||
+			values[STEPPER_ROTATION_DIRECTION] < 63)
+			stepdelay >> 1;
+
+		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
+	} else {
+		digitalWrite(GREEN_LED, LOW);
+		if ((values[STEPPER_INDEX_MODE] > 0 && values[STEPPER_INDEX_MODE] <= 120)
+			|| (values[STEPPER_INDEX_MODE] >= 132 && values[STEPPER_INDEX_MODE] <= 254))
+			return;
+
+		if (values[STEPPER_INDEX_MODE] == 255) {
+			stepperposition = 0;
+			return;
+		}
+
+		if ((values[STEPPER_INDEX_MODE] >= 120 && values[STEPPER_INDEX_MODE] <= 132)) {
+			stepperindex = values[STEPPER_INDEX_ROTATION] * 32;
+			//Serial.print("stepper index ");
+			//Serial.print(stepperindex);
+			//Serial.print(" position ");
+			//Serial.println(stepperposition);
+
+			digitalWrite(GREEN_LED, HIGH);
+		}
+
+		if (stepperposition ==  stepperindex) {
+			Serial.print("reached stepperindex ");
+			Serial.print("stepper index ");
+			Serial.print(stepperindex);
+			Serial.print(" position ");
+			Serial.println(stepperposition);
+			return;
+		}
+
+		//clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
+		clockwise = stepperposition > stepperindex? 0 : 1;
+		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
+
+		//The step angle is 5.625/64 and the operating Frequency is 100pps
+		stepperposition += clockwise ? 1 : -1;
+		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
+	}
+}
+
+void
+stepmotor(int *pins, int *steps, int direction, int stepdelay)
+{
+	static unsigned long laststep = micros();
+	static int step = 0;
+
+	unsigned long now = micros();
+
+	stepdelay = max(stepdelay, 800);
+
+	if ((now - laststep) > stepdelay) {
+		step += direction ?  1 : -1;
+
+		if (step < 0)
+			step = 7;
+		if (step > 7)
+			step = 0;
+
+		digitalWrite(pins[0], steps[step] & MOTORPIN1_MASK);
+		digitalWrite(pins[1], steps[step] & MOTORPIN2_MASK);
+		digitalWrite(pins[2], steps[step] & MOTORPIN3_MASK);
+		digitalWrite(pins[3], steps[step] & MOTORPIN4_MASK);
+
+		laststep = now;
+	}
 }
 
 /* Reads a set of DMX channels from the DMX frames *

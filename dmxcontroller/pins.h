@@ -190,6 +190,46 @@ static int dipSwitches[DIPMAX] =
 	DIP12 
 };
 
+#define STEPPERPIN1 50
+#define STEPPERPIN2 51
+#define STEPPERPIN3 52
+#define STEPPERPIN4 53
+#define STEPPERPINS_MAX 4
+
+#define STEPPER_ROTATION_SPEED 0
+#define STEPPER_ROTATION_DIRECTION 1
+#define STEPPER_INDEX_MODE 2
+#define STEPPER_INDEX_ROTATION 3
+
+
+#define STEPPERCHANNELS 4
+
+static int stepperpins[STEPPERPINS_MAX] =
+{
+	STEPPERPIN1,
+	STEPPERPIN2,
+	STEPPERPIN3,
+	STEPPERPIN4
+};
+
+#define MOTORPIN1_MASK 0x01
+#define MOTORPIN2_MASK 0x02
+#define MOTORPIN3_MASK 0x04
+#define MOTORPIN4_MASK 0x08
+
+#define MAXSTEPS 8
+
+static int motorsteps[MAXSTEPS] =
+{
+	B01000,
+	B01100,
+	B00100,
+	B00110,
+	B00010,
+	B00011,
+	B00001,
+	B01001
+};
 
 /* Global mode variables read from DIP switches */
 uint8_t dmxMode;
