@@ -156,8 +156,6 @@ static int de1pins[DEPINS_MAX] =
 
 #elif REV == REV_IIIA
 
-#pragma message "in rev 3 block"
-
 #define DIP1 49
 #define DIP2 48
 #define DIP3 47
