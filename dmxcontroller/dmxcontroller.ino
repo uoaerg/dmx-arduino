@@ -174,6 +174,7 @@ void
 loop()
 {
 	static int led = 0;
+	static int lastflash = millis();
 
 	dmxAddress = dipReadAddress();
 	dmxMode = dipReadMode();
@@ -211,7 +212,6 @@ loop()
 
 			/* Add some delay when we change programs */
 			delay(200);
-		} else {
 			digitalWrite(GREEN_LED, LOW);
 		}
 	}
@@ -226,12 +226,14 @@ loop()
 
 	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
 		digitalWrite(RED_LED, led);
-		led = !led;
+		int now = millis();
+		if ( now - lastflash > 200) {
+			led = !led;
+			lastflash = now;
+		}
 	} else {
 		digitalWrite(RED_LED, HIGH);
 	}
-
-	delay(200); 
 }
 
 /* ************************************************* */
@@ -240,8 +242,13 @@ void
 defaultprogram()
 {
 	static int led = 0;
+	static unsigned long lasttoggle = micros();
+	unsigned long now = millis();
 
-	led = !led;
+	if (now - lasttoggle > 200) {
+		led = !led;
+		lasttoggle = now;
+	}
 	digitalWrite(GREEN_LED, led);
 }
 
