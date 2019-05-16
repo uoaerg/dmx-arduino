@@ -448,55 +448,10 @@ steppermain()
 	if (values[STEPPER_INDEX_MODE] == 0 ) {
 		if (values[STEPPER_ROTATION_SPEED] == 0)
 			return;
-		if (values[STEPPER_ROTATION_DIRECTION] == 0 ||
-			(values[STEPPER_ROTATION_DIRECTION] >= 125 &&
-				values[STEPPER_ROTATION_DIRECTION] <= 131))
-			return;
 
 		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 
-		if (values[STEPPER_ROTATION_DIRECTION] > 193 ||
-			values[STEPPER_ROTATION_DIRECTION] < 63)
-			stepdelay >> 1;
-
-		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
-	} else {
-		digitalWrite(GREEN_LED, LOW);
-		if ((values[STEPPER_INDEX_MODE] > 0 && values[STEPPER_INDEX_MODE] <= 120)
-			|| (values[STEPPER_INDEX_MODE] >= 132 && values[STEPPER_INDEX_MODE] <= 254))
-			return;
-
-		if (values[STEPPER_INDEX_MODE] == 255) {
-			stepperposition = 0;
-			return;
-		}
-
-		if ((values[STEPPER_INDEX_MODE] >= 120 && values[STEPPER_INDEX_MODE] <= 132)) {
-			stepperindex = values[STEPPER_INDEX_ROTATION] * 32;
-			//Serial.print("stepper index ");
-			//Serial.print(stepperindex);
-			//Serial.print(" position ");
-			//Serial.println(stepperposition);
-
-			digitalWrite(GREEN_LED, HIGH);
-		}
-
-		if (stepperposition ==  stepperindex) {
-			Serial.print("reached stepperindex ");
-			Serial.print("stepper index ");
-			Serial.print(stepperindex);
-			Serial.print(" position ");
-			Serial.println(stepperposition);
-			return;
-		}
-
-		//clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
-		clockwise = stepperposition > stepperindex? 0 : 1;
-		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
-
-		//The step angle is 5.625/64 and the operating Frequency is 100pps
-		stepperposition += clockwise ? 1 : -1;
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	}
 }
@@ -506,10 +461,11 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 {
 	static unsigned long laststep = micros();
 	static int step = 0;
+	static int previousdirection = 0;
 
 	unsigned long now = micros();
 
-	stepdelay = max(stepdelay, 800);
+	stepdelay = max(stepdelay, 1100);
 
 	if ((now - laststep) > stepdelay) {
 		step += direction ?  1 : -1;
