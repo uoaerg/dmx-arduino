@@ -49,6 +49,7 @@ void defaultprogram(void);
 
 void readDMXChannels(int *, uint16_t );
 void stepmotor(int *motorpins, int *motorsteps, int direction, int step);
+void stopmotor(int *motorpins);
 
 uint8_t readRed(uint8_t);
 uint8_t readGreen(uint8_t);
@@ -56,6 +57,7 @@ uint8_t readBlue(uint8_t);
 
 void (*program)(void);
 Servo servos[SERVOPINS_MAX];
+int16_t stepperposition = 0;
 
 /* Driver for the WS2812 3-colour LED strip */
 /* each pixel programmed in a chain with 3 8-bit colour values */
@@ -430,7 +432,6 @@ neopixelmain()
 void
 steppermain()
 {
-	static int stepperposition = 0;
 	uint16_t stepdelay = 25600;
 	int clockwise = 1;
 
@@ -438,7 +439,7 @@ steppermain()
 	readDMXChannels(values, STEPPERCHANNELS);
 
 	int validstepperindex = 0;
-	int stepperindex = 0;
+	int16_t stepperindex = 0;
 
 	if(values[0] > 0)
 		digitalWrite(YELLOW_LED, HIGH);
@@ -446,12 +447,52 @@ steppermain()
 		digitalWrite(YELLOW_LED, LOW);
 
 	if (values[STEPPER_INDEX_MODE] == 0 ) {
-		if (values[STEPPER_ROTATION_SPEED] == 0)
+		if (values[STEPPER_ROTATION_SPEED] == 0 ||
+			values[STEPPER_ROTATION_DIRECTION] == 0) {
+			stopmotor(stepperpins);
 			return;
+		}
 
 		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 
+		/* TODO: missing direction based step speed shift */
+		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
+	} else {
+		digitalWrite(GREEN_LED, LOW);
+		if ((values[STEPPER_INDEX_MODE] > 0 && values[STEPPER_INDEX_MODE] <= 50)
+			|| (values[STEPPER_INDEX_MODE] >= 200
+				&& values[STEPPER_INDEX_MODE] <= 254))
+			return;
+
+		if (values[STEPPER_INDEX_MODE] == 255) {
+			stepperposition = 0;
+			return;
+		}
+
+		if ((values[STEPPER_INDEX_MODE] >= 50 &&
+			values[STEPPER_INDEX_MODE] <= 200 )) {
+
+			stepperindex = values[STEPPER_INDEX_ROTATION] << 1;
+			digitalWrite(GREEN_LED, HIGH);
+		}
+
+		if (stepperposition == stepperindex) {
+			/*
+			 * leave the motor free when we reach the index. If there is a load
+			 * on the motor (something heavy that will turn it) you may want to
+			 * hold the motor at the index instead.
+			 */
+			stopmotor(stepperpins);
+			return;
+		}
+		if (values[STEPPER_ROTATION_SPEED] == 0) {
+			stopmotor(stepperpins);
+			return;
+		}
+
+		clockwise = stepperposition > stepperindex? 0 : 1;
+		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	}
 }
@@ -461,8 +502,6 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 {
 	static unsigned long laststep = micros();
 	static int step = 0;
-	static int previousdirection = 0;
-
 	unsigned long now = micros();
 
 	stepdelay = max(stepdelay, 1100);
@@ -470,10 +509,18 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 	if ((now - laststep) > stepdelay) {
 		step += direction ?  1 : -1;
 
-		if (step < 0)
+		if (step < 0) {
 			step = 7;
-		if (step > 7)
+			stepperposition--;
+		}
+		if (step > 7) {
 			step = 0;
+			stepperposition++;
+		}
+		if (stepperposition < 0)
+			stepperposition == 511;
+		if (stepperposition > 511)
+			stepperposition == 0;
 
 		digitalWrite(pins[0], steps[step] & MOTORPIN1_MASK);
 		digitalWrite(pins[1], steps[step] & MOTORPIN2_MASK);
@@ -482,6 +529,15 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 
 		laststep = now;
 	}
+}
+
+void stopmotor(int *pins)
+{
+
+		digitalWrite(pins[0], LOW);
+		digitalWrite(pins[1], LOW);
+		digitalWrite(pins[2], LOW);
+		digitalWrite(pins[3], LOW);
 }
 
 /* Reads a set of DMX channels from the DMX frames *
