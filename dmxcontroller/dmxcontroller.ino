@@ -147,7 +147,8 @@ setup()
 	strip.begin();	/* Initialize the WS2812 LED strip */
 	strip.show(); 	/* Set all pixels in strip to 'off' */
 
-	if(dipReadAddress() > 255) {
+	// Panel test executes for full (>511)
+	if(dipReadAddress() > 502) {
 		Serial.println("Running panel test");
 
 		strip.setPixelColor(0, strip.Color(255,255,255));
@@ -410,7 +411,10 @@ neopixelmain()
 {
 	int values[LEDCOUNT];
 	// Awkawardly, the Neopixel library doesn't coexist with the DMX ISR
-	// A solution could be to call DMXSerial.init(DMXReceiver); here each time!
+	// A solution could call DMXSerial.init(DMXReceiver) here each time!
+	DMXSerial.init(DMXReceiver);
+	// We might need a pause here?
+	Delay(100); // 100 ms
 	readDMXChannels(values,LEDCOUNT);
 
 	if(values[0] > 0)
@@ -427,7 +431,6 @@ neopixelmain()
 			)
 		);
 	}
-
 	strip.show();
 }
 
