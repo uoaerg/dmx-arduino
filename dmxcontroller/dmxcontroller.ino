@@ -409,6 +409,8 @@ void
 neopixelmain()
 {
 	int values[LEDCOUNT];
+	// Awkawardly, the Neopixel library doesn't coexist with the DMX ISR
+	// A solution could be to call DMXSerial.init(DMXReceiver); here each time!
 	readDMXChannels(values,LEDCOUNT);
 
 	if(values[0] > 0)
