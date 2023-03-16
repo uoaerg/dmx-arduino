@@ -8,10 +8,10 @@
 #define REV REV_IIIA
 
 #ifndef REV
-#pragma message "please set a board revision in dmxboard.h"
+#pragma message "Please set a board revision in dmxboard.h"
 #endif
 
-#define GIT "not set"	/* please set manually before flashing */
+#define GIT "Not set"	/* please set manually before flashing */
 
 #if REV == REV_II
 #define DMXBOARDREV "dmxboard rev II"
