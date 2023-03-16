@@ -414,7 +414,7 @@ neopixelmain()
 	// A solution could call DMXSerial.init(DMXReceiver) here each time!
 	DMXSerial.init(DMXReceiver);
 	// We might need a pause here?
-	Delay(100); // 100 ms
+	delay(100); // 100 ms
 	readDMXChannels(values,LEDCOUNT);
 
 	if(values[0] > 0)
