@@ -41,8 +41,9 @@
 //#define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
 /* WS2812 TDM strip configuration */
 #ifdef NEOPIXELDISPLAY
-// 256 LEDs is a long strip - check for timing conflicts
-#define LEDCOUNT 256
+// No of LEDs is a strip - Long strip have timing implications
+//#define LEDCOUNT 256
+#define LEDCOUNT 32
 #define STRIP_PIN 22
 
 #pragma message "USING CONFIG FOR NEOPIXEL GRID DISPLAY"
