@@ -11,7 +11,7 @@
 #pragma message "Please set a board revision in dmxboard.h"
 #endif
 
-#define GIT "panik release 0.5"	/* please set manually before flashing */
+#define GIT "Release 1.0 (GF)"	/* please set manually before flashing */
 
 #if REV == REV_II
 #define DMXBOARDREV "dmxboard rev II"
