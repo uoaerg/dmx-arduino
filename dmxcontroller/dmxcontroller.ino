@@ -430,7 +430,7 @@ neopixelmain()
 	// If DMX address = 508 then use slot 384 onwards to output 128 slots
 
 	if (dmxAddress<508)
-		readDMXChannels(values,LEDCOUNT)
+		readDMXChannels(values,LEDCOUNT);
 	else 
 		readStartDMXChannels(values,128,511-dmxAddress);
 	
