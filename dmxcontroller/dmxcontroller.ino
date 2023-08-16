@@ -49,7 +49,7 @@ void steppermain(void);
 void defaultprogram(void);
 
 void readDMXChannels(int *, uint16_t );
-void readStartDMXChannels(int *, uint16_t,startaddr );
+void readStartDMXChannels(int *, uint16_t, uint16_t startaddr );
 
 void stepmotor(int *motorpins, int *motorsteps, int direction, int step);
 void stopmotor(int *motorpins);
@@ -580,7 +580,7 @@ readDMXChannels(int *dmxvalues, uint16_t dmxchannels)
 /* GF as above, but includes start address */
 
 void
-readStartDMXChannels(int *dmxvalues, uint16_t dmxchannels,startaddr)
+readStartDMXChannels(int *dmxvalues, uint16_t dmxchannels, uint16_t startaddr)
 {
 	int max = dmxAddress+dmxchannels;
 	/* There are only ever 512 slots in a frame */
