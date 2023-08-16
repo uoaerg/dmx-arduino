@@ -127,20 +127,20 @@ setup()
 	Serial.begin(9600);
 
 	Serial.println("---------------------------------------------------------");
-	Serial.println("build: " GIT);
-	Serial.println("board: " DMXBOARDREV);
-
+	Serial.println("Build name: " GIT);
+	Serial.println("Board rev : " DMXBOARDREV);
+	
 	Serial.print("DMX Address: b");
 	Serial.print(dipReadAddress(), BIN);
-	Serial.print(" ");
+	Serial.print(" d");
 	Serial.println(dipReadAddress(), DEC);
 
 	Serial.print("Board mode: b");
 	Serial.print(dipReadMode(), BIN);
-	Serial.print(" ");
+	Serial.print(" d");
 	Serial.println(dipReadMode(), DEC);
 
-
+	Serial.println("Red LED will blink when DMX data is received.");
 #ifdef NEOPIXELDISPLAY
 	Serial.print("Board configured for NEOPIXEL on pin ");
 	Serial.println(STRIP_PIN);
@@ -172,6 +172,7 @@ setup()
 		strip.show();
 	}
 #endif //NEOPIXELDISPLAY
+	
 	Serial.println("---------------------------------------------------------");
 
 	DMXSerial.init(DMXReceiver);	/* initialise the DMX receive code */
@@ -207,7 +208,7 @@ loop()
 					if(servos[i].attached())
 						servos[i].detach();
 
-			/* If we have started the test program, enable dmx control */
+			/* If we have started the test program, enable DMX control */
 			/* This sets the line driver to transmit and starts sending */
 			if(newprogram == testmain) {
 				DMXSerial.init(DMXController);
@@ -230,8 +231,8 @@ loop()
 	if(program != NULL)
 		program();
 
-	/* Blink the red status LED if there is dmx data within our timeout.
- 	 * If not, hold the status red LED high, how commercial hardware works
+	/* Blink the red status LED if there is DMX data within our timeout.
+ 	 * If not, hold the status red LED high, this is how commercial hardware works
  	 */
 
 	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
