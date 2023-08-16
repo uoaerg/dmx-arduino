@@ -7,6 +7,7 @@
 /* #define REV	REV_II */
 #define REV REV_IIIA
 
+#pragma message "Board and software revision defined in dmxboard.h."
 #ifndef REV
 #pragma message "Please set a board revision in dmxboard.h"
 #endif
