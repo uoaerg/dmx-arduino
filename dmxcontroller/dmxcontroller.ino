@@ -135,12 +135,14 @@ setup()
 	Serial.print(" d");
 	Serial.println(dipReadAddress(), DEC);
 
-	Serial.print("Board mode: b");
+	Serial.print("Board mode:  b");
 	Serial.print(dipReadMode(), BIN);
 	Serial.print(" d");
 	Serial.println(dipReadMode(), DEC);
 
-	Serial.println("Red LED will blink when DMX data is received.");
+	Serial.println("Red LED blinks when DMX data is received.");
+
+	/* Test routine for NEOPIXEL strip when enabled */
 #ifdef NEOPIXELDISPLAY
 	Serial.print("Board configured for NEOPIXEL on pin ");
 	Serial.println(STRIP_PIN);
@@ -184,8 +186,8 @@ setup()
 void 
 loop()
 {
-	static int led = 0;
-	static int lastflash = millis();
+	static int led = 0;              /* for red LED */
+	static int lastflash = millis(); /* for red LED */
 
 	dmxAddress = dipReadAddress();
 	dmxMode = dipReadMode();
@@ -248,7 +250,8 @@ loop()
 }
 
 /* ************************************************* */
-/* Program to execute when no valid mode is selected */
+/* Program to execute when no valid mode is selected :
+ * Green LED flashes */
 void
 defaultprogram()
 {
@@ -260,7 +263,7 @@ defaultprogram()
 		led = !led;
 		lasttoggle = now;
 	}
-	digitalWrite(GREEN_LED, led);
+	digitalWrite(GREEN_LED, led); 
 }
 
 /* ************************************************* */
@@ -278,7 +281,7 @@ testmain()
 
 	static int lastAddress;
 
-	/* read pot value and set the yellow status LED */
+	/* read pot value and set the yellow status LED when > 128 */
 	reading = (uint16_t)analogRead(POT_PIN) / 4; 
 	if(reading > 128)
 		digitalWrite(YELLOW_LED, HIGH);
@@ -297,7 +300,7 @@ testmain()
 		}
 	}
 
-	/* If there is no valid address, sent a recognisable pattern */
+	/* If address is zero, send a recognisable pattern of 4 slots */
 	if(dmxAddress == 0) {
 		DMXSerial.write(1, 0x55); /* Slot 1 */
 		DMXSerial.write(2, 0xFF); /* Slot 2 */
@@ -308,17 +311,16 @@ testmain()
 	}
 	lastAddress = dmxAddress;
 
-	/* Output the DIP switch pattern on the output port */
+	/* Output a copy of the DIP switch pattern on the output ports */
 	for(int i = 0;i < DEPINS_MAX; i++) {
 		int status = !(dmxAddress & value);
 		digitalWrite(depins[i], status);	
-
 		value = value << 1;
 	}
 
 	/*	
-	 *  The following code just checks the bit max then set accordingly. For
-	 *  some reason the bit mask doesnt work. I think gcc might be reducing the
+	 *  The following code checks the bit max, then sets accordingly. For
+	 *  some reason the bit mask does not work. I think gcc might be reducing the
 	 *  size of the int.
 	 *	value = (1 << 8);
 	 *	digitalWrite(GREEN_LED, (dmxAddress & value) );	
@@ -402,7 +404,7 @@ servomain()
 }
 
 /* ************************************************* */
-/* Program to execute when W2812 mode selected       */
+/* Program to execute when WS2812 mode selected       */
 /* outputs TDM waveform for each channel value onto a*/
 /* serial WS2812 port, one channel per LED           */
 /* channel value is mapped via a colour lookup table */
@@ -412,10 +414,10 @@ void
 neopixelmain()
 {
 	int values[LEDCOUNT];
-	// Awkawardly, the Neopixel library doesn't coexist with the DMX ISR
-	// A solution could call DMXSerial.init(DMXReceiver) here each time!
+	// GF: Awkwardly, the Neopixel library doesn't coexist with the DMX ISR
+	// A solution calls DMXSerial.init(DMXReceiver) here each time!
 	DMXSerial.init(DMXReceiver);
-	// We might need a pause here?
+	// We might need a pause here .. for the initialisation and to grab a DMX frame //
 	delay(100); // 100 ms
 	readDMXChannels(values,LEDCOUNT);
 
