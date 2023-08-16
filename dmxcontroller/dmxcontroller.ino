@@ -1,5 +1,6 @@
 /*-
- * Copyright (c) 2017 Tom Jones tom@erg.abdn.ac.uk
+ * Copyright (c) 2017 Tom Jones, UoA tom@erg.abdn.ac.uk
+ * Copyright (c) 2023 Gorry Fairhurst, UoA gorry@erg.abdn.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +61,7 @@ Servo servos[SERVOPINS_MAX];
 int16_t stepperposition = 0;
 
 /* Driver for the WS2812 3-colour LED strip */
-/* each pixel programmed in a chain with 3 8-bit colour values */
+/* each pixel is programmed in a chain with 3x 8-bit colour values */
 Adafruit_NeoPixel strip = Adafruit_NeoPixel
 (
 	LEDCOUNT,		/* Maximum number of LEDs on the strip */
