@@ -1,5 +1,7 @@
 /*-
  * Copyright (c) 2017 Tom Jones tom@erg.abdn.ac.uk
+ * Copyright (c) 2023 Gorry Fairhurst gorry@erg.abdn.ac.uk
+
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,21 +40,19 @@
 /* Potentiometer input for input of slot value in test mode */
 #define POT_PIN A3
 
-//#define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
+#define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
 /* WS2812 TDM strip configuration */
 #ifdef NEOPIXELDISPLAY
-// No of LEDs is a strip - Long strip have timing implications
-//#define LEDCOUNT 256
-#define LEDCOUNT 32
-#define STRIP_PIN 22
-
-#pragma message "USING CONFIG FOR NEOPIXEL GRID DISPLAY"
-
+	// No of LEDs is a strip - Long strip have timing implications
+	//#define LEDCOUNT 256 
+	#define LEDCOUNT 32 
+	// #define STRIP_PIN 22
+   	#define STRIP_PIN 9
+	#pragma message "USING CONFIG FOR SMALL NEOPIXEL DISPLAY"
 #else NEOPIXELDISPLAY
-
-#define LEDCOUNT 128 
-#define STRIP_PIN 9
-
+	#define LEDCOUNT 128 
+	#define STRIP_PIN 9
+	#pragma message "USING CONFIG FOR LARGE NEOPIXEL DISPLAY"
 #endif //NEOPIXELDISPLAY
 
 #define TRIGGER_PIN 8
