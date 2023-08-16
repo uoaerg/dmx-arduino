@@ -7,9 +7,9 @@
 /* #define REV	REV_II */
 #define REV REV_IIIA
 
-#pragma message "Board and software revision defined in dmxboard.h."
+// #pragma message "Board and software revision defined in dmxboard.h."
 #ifndef REV
-#pragma message "Please set a board revision in dmxboard.h"
+// #pragma message "Please set a board revision in dmxboard.h"
 #endif
 
 #define GIT "Release 1.0 (08-23 GF)"	/* please set manually before flashing */
