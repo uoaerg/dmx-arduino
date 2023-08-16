@@ -49,6 +49,8 @@ void steppermain(void);
 void defaultprogram(void);
 
 void readDMXChannels(int *, uint16_t );
+void readstartDMXChannels(int *, uint16_t,startaddr );
+
 void stepmotor(int *motorpins, int *motorsteps, int direction, int step);
 void stopmotor(int *motorpins);
 
@@ -419,8 +421,19 @@ neopixelmain()
 	DMXSerial.init(DMXReceiver);
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
 	delay(100); // 100 ms
-	readDMXChannels(values,LEDCOUNT);
 
+	// The next step checks the DMX address
+	// If address < 508 then output LEDCOUNT LEDs.
+	// If DMX address = 511 then use slot 0 onwards to output 128 slots
+	// If DMX address = 510 then use slot 128 onwards to output 128 slots
+	// If DMX address = 509 then use slot 256 onwards to output 128 slots
+	// If DMX address = 508 then use slot 384 onwards to output 128 slots
+
+	if (dmxAddress<508)
+		readDMXChannels(values,LEDCOUNT)
+	else 
+		readstartDMXChannels(values,128,511-dmxAddress);
+	
 	if(values[0] > 0)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
@@ -439,6 +452,8 @@ neopixelmain()
 }
 
 void
+
+/* Main stepper motor function */
 steppermain()
 {
 	uint16_t stepdelay = 25600;
@@ -556,6 +571,8 @@ void
 readDMXChannels(int *dmxvalues, uint16_t dmxchannels)
 {
 	int max = dmxAddress+dmxchannels;
+	/* There are only ever 512 slots in a frame */
+	if (max>511) max = 511;
 
 	for(uint16_t i = dmxAddress, j = 0; i < max; i++, j++)
 		dmxvalues[j] = DMXSerial.read(i);
