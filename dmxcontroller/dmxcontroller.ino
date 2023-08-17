@@ -67,7 +67,7 @@ extern "C" {
 #define DMXADDRESSMAX 513 	/* maximum number of channels read in a frame */
 #define DMXTIMEOUT 1000		/* One Second timeout to take receiver off-line */
 
-void testmain(void);
+void controllermain(void);
 void digitalmain(void);
 void pwmmain(void);
 void servomain(void);
@@ -103,7 +103,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel
 /* This is the menu man for the board */
 #define NUMPROGRAMS 8
 void (*programs[NUMPROGRAMS])(void) = {
-	testmain, 	/* Mode 0 */
+	controllermain, 	/* Mode 0 */
 	digitalmain,	/* Mode 1 */
 	pwmmain,	/* Mode 2 */
 	servomain,	/* Mode 3 */
@@ -129,7 +129,8 @@ setup()
 
 	pinMode(POT_PIN, INPUT);
 
-	for(int i = 0; i < DIPMAX; i++) {
+	/* DIP switch input of address and mode */
+ 	for(int i = 0; i < DIPMAX; i++) {
 		pinMode(dipSwitches[i], INPUT);
 		digitalWrite(dipSwitches[i], HIGH);
 	}
@@ -243,12 +244,12 @@ loop()
 
 			/* If we have started the test program, enable DMX control */
 			/* This sets the line driver to transmit and starts sending */
-			if(newprogram == testmain) {
+			if(newprogram == controllermain) {
 				DMXSerial.init(DMXController);
 				/* 0 each slot to make DMXSerial always send a full frame */
 				for (int i = 0; i < 512; i++)
 					DMXSerial.write(i+1, 0x00);
-			} else if(program == testmain) {
+			} else if(program == controllermain) {
 				DMXSerial.init(DMXReceiver);
 			}
 
@@ -270,7 +271,6 @@ loop()
 
 	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
 		OutputDisabled = FALSE;
-
 		digitalWrite(RED_LED, led);
 		int now = millis();
 		if ( now - lastflash > 200) {
@@ -303,14 +303,14 @@ defaultprogram()
 }
 
 /* ************************************************* */
-/* Program to execute in test mode                   */
+/* Program to execute in controller mode             */
 /* Outputs low order DIP switches output to D9 socket*/
 /* Control waveform sent on DMX output               */
 /* - frame is static if low order DIP switch is 0    */
 /* = frame sets slot for switch with value from pot  */
 /* Yellow LED indicates if pot > 128                 */
 void 
-testmain()
+controllermain()
 {
 	uint16_t value = 1;
 	uint8_t reading = 0;
@@ -518,7 +518,7 @@ steppermain()
 	uint16_t stepdelay = 25600;
 	int clockwise = 1;
 
-	int values[STEPPERCHANNELS];
+	int values[STEPPERCHANNELS];	/* Read all slots needed */
 	readDMXChannels(values, STEPPERCHANNELS);
 
 	int validstepperindex = 0;
@@ -539,7 +539,7 @@ steppermain()
 		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 
-		/* TODO: missing direction based step speed shift */
+		/* TODO: missing direction-based step speed shift */
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	} else {
 		digitalWrite(GREEN_LED, LOW);
@@ -562,7 +562,7 @@ steppermain()
 
 		if (indexposition == stepperindex) {
 			/*
-			 * leave the motor free when we reach the index. If there is a load
+			 * Leave the motor free when we reach the index. If there is a load
 			 * on the motor (something heavy that will turn it) you may want to
 			 * hold the motor at the index instead.
 			 */
