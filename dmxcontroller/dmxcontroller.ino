@@ -261,7 +261,7 @@ loop()
  	 */
 
 	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
-		OutputDisabled = FALSE;
+		OutputDisabled = false;
 		digitalWrite(RED_LED, led);
 		int now = millis();
 		if ( now - lastflash > 200) {
@@ -272,7 +272,7 @@ loop()
 		/* Outputs ought to be disabled here */
 		/* Currently no action taken */
 		digitalWrite(RED_LED, HIGH);
-		OutputDisabled = TRUE;
+		OutputDisabled = true;
 	}
 }
 
@@ -484,7 +484,7 @@ neopixellong()
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
 	delay(100); // 100 ms
 
-	readDMXChannels(values,LONG LEDCOUNT);	
+	readDMXChannels(values,LEDCOUNT);	
 	if(values[0] > 0)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
@@ -676,5 +676,3 @@ readGreen(uint8_t value)
 	else
 		return green | 0x1F;
 }
-
-
