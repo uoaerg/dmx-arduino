@@ -26,7 +26,25 @@
  *
  */
 
-/* SERIAL BUG to resolve -- GF
+/* Issues list Aug 2023 */
+/* 	1. Fix serial conflict.
+		1a. Check code for DMXTIMEOUT (1 sec)
+  		1b. Check board.
+	2. Finish Neopixel code review.
+ 		2a. Check new Neopixel code operation (make long Neopixel a separate program???)
+  		2b. Update Lab Handbook - neopixel
+	3. Add status LED for sending mode.
+	       	3a. Add & test status blinking LED(s) to indicate in sending mode!
+     		3b. Update Lab Handbook - sending
+       		3c. Update Lab Handbook - green flashing = no program.
+   	4. Update code readme text.
+    		4a. Check commented-out compile pragma
+      		4b. Check for print in main code (and ifdef if neeeded)
+    	5. Check both board revisions
+     		5a Update firmware in production boards !!!
+*/
+
+/* SERIAL CONFLICT to resolve -- GF
 https://github.com/mathertel/DMXSerial/tree/master
 The Arduino MEGA 2560 boards use the serial port 0 on pins 0 an 1.
 The vector numbers differ because you use the Mega board and not the UNO.
