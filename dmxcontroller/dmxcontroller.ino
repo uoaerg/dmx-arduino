@@ -73,6 +73,7 @@ void servomain(void);
 void neopixelmain(void);
 void steppermain(void);
 void defaultprogram(void);
+void neopixellong(void);
 
 void readDMXChannels(int *, uint16_t );
 void readStartDMXChannels(int *, uint16_t, uint16_t startaddr );
@@ -107,7 +108,7 @@ void (*programs[NUMPROGRAMS])(void) = {
 	neopixelmain,	/* Mode 4 */
 	steppermain,	/* Mode 5 */
 	defaultprogram,	/* Mode 6 */
-	defaultprogram,	/* Mode 7 */
+	neopixellong,	/* Mode 7 */
 };
 
 void 
@@ -448,18 +449,7 @@ neopixelmain()
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
 	delay(100); // 100 ms
 
-	// The next step checks the DMX address
-	// If address < 508 then output LEDCOUNT LEDs.
-	// If DMX address = 511 then use slot 0 onwards to output 128 slots
-	// If DMX address = 510 then use slot 128 onwards to output 128 slots
-	// If DMX address = 509 then use slot 256 onwards to output 128 slots
-	// If DMX address = 508 then use slot 384 onwards to output 128 slots
-
-	if (dmxAddress<508)
-		readDMXChannels(values,LEDCOUNT);
-	else 
-		readStartDMXChannels(values,128,511-dmxAddress);
-	
+	readDMXChannels(values,LEDCOUNT);	
 	if(values[0] > 0)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
@@ -477,9 +467,45 @@ neopixelmain()
 	strip.show();
 }
 
+/* neopixellong */
+/* ************************************************* */
+/* Varient of program to execute when WS2812 mode selected       */
+/* outputs TDM waveform for each channel value onto a*/
+/* serial WS2812 port, one channel per LED           */
+/* channel value is mapped via a colour lookup table */
+/* to three 8-bit colour values for each pixel       */
+/* Yellow LED indicates if channel 1 > 128           */
 void
+neopixellong()
+{
+#define LONGLEDCOUNT 128
+	int values[LONGLEDCOUNT];
+	// GF: Awkwardly, the Neopixel library doesn't coexist with the DMX ISR
+	// A solution calls DMXSerial.init(DMXReceiver) here each time!
+	DMXSerial.init(DMXReceiver);
+	// We might need a pause here .. for the initialisation and to grab a DMX frame //
+	delay(100); // 100 ms
+
+	readDMXChannels(values,LONG LEDCOUNT);	
+	if(values[0] > 0)
+		digitalWrite(YELLOW_LED, HIGH);	
+	else
+		digitalWrite(YELLOW_LED, LOW);	
+
+	for(int i = 0;i < LEDCOUNT; i++) {
+		strip.setPixelColor(i,
+			strip.Color(
+				readRed(values[i]),
+				readGreen(values[i]),
+				readBlue(values[i])
+			)
+		);
+	}
+	strip.show();
+}
 
 /* Main stepper motor function */
+void
 steppermain()
 {
 	uint16_t stepdelay = 25600;
@@ -603,19 +629,6 @@ readDMXChannels(int *dmxvalues, uint16_t dmxchannels)
 	for(uint16_t i = dmxAddress, j = 0; i < max; i++, j++)
 		dmxvalues[j] = DMXSerial.read(i);
 }
-/* GF as above, but includes start address */
-
-void
-readStartDMXChannels(int *dmxvalues, uint16_t dmxchannels, uint16_t startaddr)
-{
-	int max = dmxAddress+dmxchannels;
-	/* There are only ever 512 slots in a frame */
-	if (max>511) max = 511;
-
-	for(uint16_t i = startaddr, j = 0; i < max; i++, j++)
-		dmxvalues[j] = DMXSerial.read(i);
-}
-
 
 /* Interpret a channel value as a RED channel for WS2812 *
  * The red value is stored in the top three bits of value.
