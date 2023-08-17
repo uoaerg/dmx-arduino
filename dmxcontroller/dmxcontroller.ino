@@ -120,7 +120,7 @@ setup()
 	pinMode(YELLOW_LED, OUTPUT);
 
 	/* RED status LED on board
-	* On indicates no DMX data; flashing indicates good DMX frames received. */
+	 * RED On indicates no DMX data; RED flashing indicates good DMX frames received. */
 	pinMode(RED_LED, OUTPUT);
 
 	pinMode(STRIP_PIN, OUTPUT);
