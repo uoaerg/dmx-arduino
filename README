@@ -4,13 +4,14 @@ Mega 2560 compatible shield allows an Ardunio to operate as either a DMX bus
 master or slave.
 
 The dmx-arduino Board (Rev I and II) was designed by Cyril Danilesvski in 2014.
-The software was written and is updated by Tom Jones, 2015-2017.
+The software was written and was updated by Tom Jones, 2015-2017.
+The software is updated by Gorry Fairhurst, 2020-2023.
 
 # Uploading the code
 
 Open the Arduino project from dmxcontroller/dmxcontroller.ino.
 
-Import the libraries from the libraries/ into the Arduino ide. It is very
+Import the libraries from the libraries/ into the Arduino ide. It is
 important that you do not allow the aruduino ide to update these libraries.
 
 Compile and upload.
@@ -46,18 +47,18 @@ P P P D D D D D D D D D
 
 The software has 8 modes (3 bits):
 
-0 - Test Mode
-1 - Digital control
+0 - DMX Controller
+1 - Digital Output Control
 2 - PWM Control 
-3 - Servo control
-4 - Neopixel control
-5 - 
-6 - 
-7 - 
+3 - Servo Control
+4 - Neopixel Strip Control
+5 - Stepper Motor Control
+6 - Unused.
+7 - Long Strip Control
 
 
-0 - Test Mode
-	The programmed dmx address will be displayed on the 8 DE2PINs with the 9th
+0 - DMX Controller Mode
+	The programmed DMX address will be displayed on the 8 DE2PINs with the 9th
 	bit displayed on the green LED.
 
 	If a dmx address of 0 is programmed on the toggle switches, the slot sequence
@@ -70,29 +71,40 @@ The software has 8 modes (3 bits):
 	address.
 
 1 - Digital control
-	8 dmx channels will be read from the bus. If the dmx value is
+	8 DMX channels will be read from the bus. If the dmx value is
 	greater than 128 the corresponding DE2PIN will set high.
 
 	The yellow LED shows the status of channel 1.
 
 2 - PWM Control 
-	The first 8 dmx channels will be read from the bus. The corresponding
+	The first 8 DMX channels will be read from the bus. The corresponding
 	DE2PINs will be given a pwm values from the dmx value.
 
 	The yellow LED shows the status of channel 1.
 
 
-3 - Servo control
-	The servo will be driven to a position based off the dmx value at the set
-	dmx address.
+3 - Servo Control
+	The servo will be driven to a position based upon the DMX value at the set
+	DMX address.
 
 	The yellow LED shows the status of channel 1.
 
-4 - Neopixel control
-	An encoded colour value will be read from all 511 dmx slots. Each byte
+4 - Neopixel Control
+	An encoded colour value will be read from a set of DMX slots. Each *byte*
 	encodes an RGB value. These values are split out then set to an attached
-	LED strip using the Neopixel Library. They are sent as a time division
+	LED strip using the Neopixel Library. These are sent as a time division
 	multiplex as 3 serialised 8-bit colour values.
+
+	The yellow LED shows the status of channel 1.
+
+5 - Stepper Motor Control
+	An encoded stepper motor control value will be read from a set of DMX slots. 
+	A set of 2 slots control the speed of rotation of the stepper motor and direction.
+	A set of 2 slots sets an index position, and then controls the relative angle to 
+	the indexed position. The rotation controls also control the speed of movement.
+
+7 - Long Neopixel Control
+	As mode 5, but timing is adjusted to allow a long strip to be driven.
 
 	The yellow LED shows the status of channel 1.
 
