@@ -27,7 +27,8 @@
  */
 
 /* Issues list to be completed by Aug 2023 */
-/* 	1. Fix serial conflict.
+/* 	0. Fix serial conflict. (see below and Tom's Libaries)
+	1. DMX Timeout
 		1a. Check code for DMXTIMEOUT (1 sec)
   		1b. Check board.
 	2. Finish Neopixel code review.
@@ -81,13 +82,14 @@ void readStartDMXChannels(int *, uint16_t, uint16_t startaddr );
 void stepmotor(int *motorpins, int *motorsteps, int direction, int step);
 void stopmotor(int *motorpins);
 
+int OutputDisabled;		/* Disable output signal */
 uint8_t readRed(uint8_t);
 uint8_t readGreen(uint8_t);
 uint8_t readBlue(uint8_t);
 
 void (*program)(void);
 Servo servos[SERVOPINS_MAX];
-int16_t stepperposition = 0;
+int16_t indexposition = 0;
 
 /* Driver for the WS2812 3-colour LED strip */
 /* each pixel is programmed in a chain with 3x 8-bit colour values */
@@ -267,6 +269,8 @@ loop()
  	 */
 
 	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
+		OutputDisabled = FALSE;
+
 		digitalWrite(RED_LED, led);
 		int now = millis();
 		if ( now - lastflash > 200) {
@@ -274,7 +278,10 @@ loop()
 			lastflash = now;
 		}
 	} else {
+		/* Outputs ought to be disabled here */
+		/* Currently no action taken */
 		digitalWrite(RED_LED, HIGH);
+		OutputDisabled = TRUE;
 	}
 }
 
@@ -542,7 +549,7 @@ steppermain()
 			return;
 
 		if (values[STEPPER_INDEX_MODE] == 255) {
-			stepperposition = 0;
+			indexposition = 0;
 			return;
 		}
 
@@ -553,7 +560,7 @@ steppermain()
 			digitalWrite(GREEN_LED, HIGH);
 		}
 
-		if (stepperposition == stepperindex) {
+		if (indexposition == stepperindex) {
 			/*
 			 * leave the motor free when we reach the index. If there is a load
 			 * on the motor (something heavy that will turn it) you may want to
@@ -567,7 +574,7 @@ steppermain()
 			return;
 		}
 
-		clockwise = stepperposition > stepperindex? 0 : 1;
+		clockwise = indexposition > stepperindex? 0 : 1;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	}
@@ -587,16 +594,16 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 
 		if (step < 0) {
 			step = 7;
-			stepperposition--;
+			indexposition--;
 		}
 		if (step > 7) {
 			step = 0;
-			stepperposition++;
+			indexposition++;
 		}
-		if (stepperposition < 0)
-			stepperposition == 511;
-		if (stepperposition > 511)
-			stepperposition == 0;
+		if (indexposition < 0)
+			indexposition == 511;
+		if (indexposition > 511)
+			indexposition == 0;
 
 		digitalWrite(pins[0], steps[step] & MOTORPIN1_MASK);
 		digitalWrite(pins[1], steps[step] & MOTORPIN2_MASK);
