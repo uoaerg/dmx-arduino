@@ -11,23 +11,23 @@ The software is updated by Gorry Fairhurst, 2020-2023.
 
 Open the Arduino project from dmxcontroller/dmxcontroller.ino.
 
-Import the libraries from the libraries/ into the Arduino ide. It is
-important that you do not allow the aruduino ide to update these libraries.
+Import the libraries from the libraries/ into the Arduino IDE. It is
+important that you do not allow the Aruduino IDE to update these libraries.
 
 Compile and upload.
 
 # Operation
 
-Program mode and dmx addressing are controlled by the 12 dip switches on the
-main sheild pcb. Program status is indicated using the three LEDs in most
+Program mode and DMX addressing are controlled by the 12 dip switches on the
+main sheild PCB. Program status is indicated using the three LEDs in most
 program modes or using additional LEDs on the DE9 connector in other modes.
 
 There is a default program that can is used in any empty slot in the program
-mode. This program will blink the green LED only.
+mode. This program will only blink the green LED.
 
-The red led on the board will give dmx status. If valid dmx data has been seen
-on the bus with DMXTIMEOUT the red led will flash. If no valid dmx data has
-been seen for 1 sec the led will be lit solidly. This functionality operates 
+The RED LED on the board provides the DMX status. If valid DMX data has been seen
+on the bus, then DMXTIMEOUT will flash the red LED. If no valid DMX data has
+been seen for 1 sec this LED will be lit solidly. This functionality operates 
 outside the control of any of the programs.
 
 When the main loop of the program detects a change in program mode the green
@@ -36,9 +36,9 @@ turning off DIP switches, but is easier to see when turning on DIP switches.
 
 ## DIP Switches
 
-The 12 dip switches form a 12 bit number with the MSB starting with switch 1.
-The program mode is encoded in the top three bits of the dip switches and the
-dmx address is encoded in the bottom 9 bits.
+The 12 DIP switches form a 12-bit number with the MSB starting with switch 1.
+The program mode is encoded in the top three bits of the DIP switches and the
+DMX address is encoded in the bottom 9 bits.
 
                   1 1 1
 1 2 3 4 5 6 7 8 9 0 1 2
@@ -61,30 +61,30 @@ The software has 8 modes (3 bits):
 	The programmed DMX address will be displayed on the 8 DE2PINs with the 9th
 	bit displayed on the green LED.
 
-	If a dmx address of 0 is programmed on the toggle switches, the slot sequence
-	0x55 0xFF 0x0F 0xF0 will be output as the first 4 dmx slots.
+	If a DMX address of 0 is selected on the DIP switches, the slot sequence
+	0x55 0xFF 0x0F 0xF0 will be output for the first four DMX slots.
 
-	In test mode the program will read from a 10K pot connected to POT_PIN. The
-	10bit value from the ADC will be scaled(divided by 4) to fit with in a dmx
-	byte. If this value is greater than 128 the yellow LED will be enabled. The
-	scaled value from the pot will be written to the dmx bus at the set dmx
+	In controller mode, the program will read from a 10K pot connected to POT_PIN. The
+	10bit value from the ADC will be scaled (divided by 4) to fit with in a DMX
+	byte. If this value is greater than 128, then the yellow LED will be lit. The
+	scaled value from the pot. will be written to the DMX bus at the slot set by the DMX
 	address.
 
 1 - Digital control
-	8 DMX channels will be read from the bus. If the dmx value is
-	greater than 128 the corresponding DE2PIN will set high.
+	Eight DMX channels will be read from the bus. If the DMX value is
+	greater than 128, then the corresponding DE2PIN will set high.
 
 	The yellow LED shows the status of channel 1.
 
 2 - PWM Control 
-	The first 8 DMX channels will be read from the bus. The corresponding
-	DE2PINs will be given a pwm values from the dmx value.
+	The first eight DMX channels will be read from the bus. The corresponding
+	DE2PINs will be given a PWM values from the DMX value.
 
 	The yellow LED shows the status of channel 1.
 
 
 3 - Servo Control
-	The servo will be driven to a position based upon the DMX value at the set
+	The servo will be driven to a position based upon the DMX value at the selected
 	DMX address.
 
 	The yellow LED shows the status of channel 1.
@@ -93,7 +93,7 @@ The software has 8 modes (3 bits):
 	An encoded colour value will be read from a set of DMX slots. Each *byte*
 	encodes an RGB value. These values are split out then set to an attached
 	LED strip using the Neopixel Library. These are sent as a time division
-	multiplex as 3 serialised 8-bit colour values.
+	multiplex as 3 serialised 8-bit colour values using the assigned pin.
 
 	The yellow LED shows the status of channel 1.
 
@@ -104,7 +104,7 @@ The software has 8 modes (3 bits):
 	the indexed position. The rotation controls also control the speed of movement.
 
 7 - Long Neopixel Control
-	As mode 5, but timing is adjusted to allow a long strip to be driven.
+	As mode 5, but with the timing adjusted to allow a long strip to be driven.
 
 	The yellow LED shows the status of channel 1.
 
