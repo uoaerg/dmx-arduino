@@ -27,6 +27,7 @@
  */
 
 /* SERIAL BUG to resolve -- GF
+https://github.com/mathertel/DMXSerial/tree/master
 The Arduino MEGA 2560 boards use the serial port 0 on pins 0 an 1.
 The vector numbers differ because you use the Mega board and not the UNO.
 On Mega you have the option to use the port 1 for DMX and the Serial for printing to the Monitor.
