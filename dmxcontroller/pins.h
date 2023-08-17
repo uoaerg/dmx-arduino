@@ -33,12 +33,12 @@
 #include "dmxboard.h"
 
 /* Board status LEDs */
-#define GREEN_LED A0
+#define GREEN_LED  A0
 #define YELLOW_LED A1
-#define RED_LED A2
+#define RED_LED    A2
 
 /* Potentiometer input for input of slot value in test mode */
-#define POT_PIN A3
+#define POT_PIN    A3
 
 #define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
 /* WS2812 TDM strip configuration */
@@ -48,12 +48,7 @@
 	#define LEDCOUNT 32 
 	// #define STRIP_PIN 22
    	#define STRIP_PIN 9
-	// #pragma message "USING CONFIG FOR SMALL NEOPIXEL DISPLAY"
-#else NEOPIXELDISPLAY
-	#define LEDCOUNT 128 
-	#define STRIP_PIN 9
-	// #pragma message "USING CONFIG FOR LARGE NEOPIXEL DISPLAY"
-#endif //NEOPIXELDISPLAY
+#endif
 
 #define TRIGGER_PIN 8
 
@@ -62,7 +57,6 @@
 
 /* SERVO mode output configuration */
 #define SERVOPINS_MAX 2
-
 #define SERVO1PIN 12 
 #define SERVO2PIN 13
 
@@ -74,10 +68,8 @@ static int servopins[SERVOPINS_MAX] =
 
 /* PWM mode output configuration */
 #define PWMPINS_MAX 2
-
 #define PWM1PIN 10
 #define PWM2PIN 11
-
 
 static int pwmpins[PWMPINS_MAX] =
 {
@@ -94,32 +86,32 @@ static int pwmpins[PWMPINS_MAX] =
 
 #if REV == REV_II
 
-#define DE1PIN1 26
-#define DE1PIN2 24
-#define DE1PIN3 25
-#define DE1PIN4 23
-#define DE1PIN5 22
-#define DE1PIN6 27
-#define DE1PIN7 28
-#define DE1PIN8 29
+	#define DE1PIN1 26
+	#define DE1PIN2 24
+	#define DE1PIN3 25
+	#define DE1PIN4 23
+	#define DE1PIN5 22
+	#define DE1PIN6 27
+	#define DE1PIN7 28
+	#define DE1PIN8 29
 
-/* REV_II DEPINS are routed through an inverting buffer */
-#define DEHIGH LOW
-#define DELOW HIGH
+	/* REV_II DEPINS are routed through an inverting buffer */
+	#define DEHIGH LOW
+	#define DELOW HIGH
 
 #elif REV == REV_IIIA
 
-#define DE1PIN1 24
-#define DE1PIN2 22
-#define DE1PIN3 27
-#define DE1PIN4 30
-#define DE1PIN5 31
-#define DE1PIN6 26
-#define DE1PIN7 29
-#define DE1PIN8 28
-
-#define DEHIGH HIGH
-#define DELOW LOW
+	#define DE1PIN1 24
+	#define DE1PIN2 22
+	#define DE1PIN3 27
+	#define DE1PIN4 30
+	#define DE1PIN5 31
+	#define DE1PIN6 26
+	#define DE1PIN7 29
+	#define DE1PIN8 28
+	
+	#define DEHIGH HIGH
+	#define DELOW LOW
 
 #endif
 
@@ -142,37 +134,36 @@ static int de1pins[DEPINS_MAX] =
 
 #if REV == REV_II
 
-#define DIP1 37
-#define DIP2 36
-#define DIP3 35
-#define DIP4 34
-#define DIP5 33
-#define DIP6 32
-#define DIP7 31
-#define DIP8 30 
-#define DIP9 38
-#define DIP10 39 
-#define DIP11 40 
-#define DIP12 41
+	#define DIP1 37
+	#define DIP2 36
+	#define DIP3 35
+	#define DIP4 34
+	#define DIP5 33
+	#define DIP6 32
+	#define DIP7 31
+	#define DIP8 30 
+	#define DIP9 38
+	#define DIP10 39 
+	#define DIP11 40 
+	#define DIP12 41
 
 #elif REV == REV_IIIA
 
-#define DIP1 49
-#define DIP2 48
-#define DIP3 47
-#define DIP4 43
-#define DIP5 42
-#define DIP6 41
-#define DIP7 40
-#define DIP8 39
-#define DIP9 38
-#define DIP10 37
-#define DIP11 36
-#define DIP12 34
+	#define DIP1 49
+	#define DIP2 48
+	#define DIP3 47
+	#define DIP4 43
+	#define DIP5 42
+	#define DIP6 41
+	#define DIP7 40
+	#define DIP8 39
+	#define DIP9 38
+	#define DIP10 37
+	#define DIP11 36
+	#define DIP12 34
 
 #else
-#error "please set board revision"
-
+	#error "please set board revision"
 #endif // REV switch
 
 static int dipSwitches[DIPMAX] = 
