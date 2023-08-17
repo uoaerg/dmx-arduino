@@ -26,7 +26,7 @@
  *
  */
 
-/* Issues list Aug 2023 */
+/* Issues list to be completed by Aug 2023 */
 /* 	1. Fix serial conflict.
 		1a. Check code for DMXTIMEOUT (1 sec)
   		1b. Check board.
