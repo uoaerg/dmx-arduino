@@ -53,7 +53,6 @@ extern "C" {
 
 #define DMXADDRESSMAX 513 	/* maximum number of channels read in a frame */
 
-/* Libary does not eturn DMXTIMEOUT correctly */
 #define DMXTIMEOUT 1000		/* One Second timeout to take receiver off-line */
 
 void controllermain(void);
