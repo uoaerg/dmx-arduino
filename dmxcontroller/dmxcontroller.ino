@@ -34,16 +34,13 @@
      		5a Update firmware in production boards !!!
 */
 
-/* NOTE: SERIAL CONFLICT exits in the on-line library, resolve using modifdied library -- GF
+/* SERIAL CONFLICT exits in on-line library, resolve using modifdied library -- GF
 https://github.com/mathertel/DMXSerial/tree/master
 The Arduino MEGA 2560 boards use the serial port 0 on pins 0 an 1.
 The vector numbers differ because you use the Mega board and not the UNO.
 On Mega you have the option to use the port 1 for DMX and the Serial for printing to the Monitor.
 see https://github.com/mathertel/DMXSerial/blob/master/src/DMXSerial_avr.h for details to enable DMX_USE_PORT1 and change your wiring.
 */
-
-/* Changes: This unmangles the logic in the stepper motor code */
-/* This creates a long neoxpixel mode */
 
 #include <DMXSerial.h>
 #include <Servo.h>
@@ -109,15 +106,16 @@ void (*programs[NUMPROGRAMS])(void) = {
 };
 
 /* This is the menu as a list of programs */
+/* Note lsb and msb versions of the mode are provided in the comments ! */
 char *program_name[]= {
-	"DMX Controller ", 	/* Mode 0 */
-	"Digital Control",	/* Mode 1 */
-	"PWM Control    ",	/* Mode 2 */
-	"Servo Control  ",	/* Mode 3 */
-	"Pixel Control  ",	/* Mode 4 */
-	"Stepper Control",	/* Mode 5 */
-	" --- None ---  ",	/* Mode 6 */
-	"Long Pixel Cont.",	/* Mode 7 */
+	"DMX Controller ", 	/* Mode 0  000 msb: 000 */
+	"Digital Control",	/* Mode 1  001 msb: 100 */
+	"PWM Control    ",	/* Mode 2  010 msb: 010*/
+	"Servo Control  ",	/* Mode 3  011 msb: 110 */
+	"Pixel Control  ",	/* Mode 4  100 msb: 001 */
+	"Stepper Control",	/* Mode 5  101 msb: 101*/
+	" --- None ---  ",	/* Mode 6  110 msb: 011 */
+	"Long Pixel Cont.",	/* Mode 7  111 msb: 111 */
 };
 
 /* -------------------------------------------------------------------------- */
@@ -180,34 +178,36 @@ setup()
 	/* Test routine for NEOPIXEL strip when enabled */
 	Serial.print("NEOPIXEL enabled, using pin: ");
 	Serial.print(STRIP_PIN);
-  Serial.println(" (Output test for address > 502 )");
 
 	strip.begin();	/* Initialize the WS2812 LED strip */
 	strip.show(); 	/* Set all pixels in strip to 'off' */
 
 	// Panel test executes for address > 502
-	if(dipReadAddress() > 502) {
-		Serial.println("Running Neopixel test...");
-
+	if (dipReadAddress() > 502) {
+		Serial.print(" Running Neopixel test for ");
+    Serial.print(LEDCOUNT);
+    Serial.println (" pixels.");
 		strip.setPixelColor(0, strip.Color(255,255,255));
 		for(int i = 1; i < LEDCOUNT; i++) {
 			strip.setPixelColor(i,
 				strip.Color(
-					random(1,255),
-					random(1,255),
-					random(1,255)
+					random(5,255),
+					random(5,255),
+					random(5,255)
 				)
 			);
 			strip.show();
-			//delay(5);
-		}
+			delay(100);
+    }
+  } else {
+    Serial.println(" (Output test enabled when address > 502 )");
+  }
 
-		for(int i = 0; i < LEDCOUNT; i++)
-			strip.setPixelColor(i,
-				strip.Color(0, 0, 0)
-			);
-		strip.show();
-	}
+  // Anyway clear the strip (there might be previosu garbage displayed)
+	for(int i = 0; i < LONGLEDCOUNT; i++)
+		strip.setPixelColor(i, strip.Color(0, 0, 0) );
+	strip.show();
+  
 #endif //NEOPIXELDISPLAY
 	printdipmode();
 
@@ -369,7 +369,7 @@ controllermain()
 	}
 	/* Read the pot value and set the yellow status LED only when > 128 */
 	reading = (uint16_t)analogRead(POT_PIN) / 4; 
-	if(reading > 128)
+	if(reading > 127)
 		digitalWrite(YELLOW_LED, HIGH);
 	else
 		digitalWrite(YELLOW_LED, LOW);
@@ -432,7 +432,8 @@ digitalmain()
 /* Program to execute when PWM mode selected         */
 /* Reads PWMPINS_MAX channels of the DMX frame       */
 /* outputs PWM for channel value on analogue output  */
-/* Yellow LED indicates if channel 1 > 128           */
+/* Yellow LED indicates if slot 1 > 127              */
+/* Yellow LED indicates if slot 2 > 127              */
 
 void 
 pwmmain()
@@ -441,10 +442,15 @@ pwmmain()
 
 	readDMXChannels(values,PWMPINS_MAX);
 
-	if(values[0] > 0)
+	if(values[0] > 127)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
-		digitalWrite(YELLOW_LED, LOW);	
+		digitalWrite(YELLOW_LED, LOW);
+
+  if(values[1] > 127)
+		digitalWrite(GREEN_LED, HIGH);	
+	else
+		digitalWrite(GREEN_LED, LOW);	
 	
 	for(int i = 0;i < PWMPINS_MAX; i++)
 		analogWrite(pwmpins[i], values[i]);
@@ -455,7 +461,6 @@ pwmmain()
 void 
 servomain()
 {
-
 	int values[SERVOPINS_MAX];
 
 	for(int i = 0;i < SERVOPINS_MAX; i++)
@@ -487,14 +492,16 @@ void
 neopixelmain()
 {
 	int values[LEDCOUNT];
+
 	// GF: Awkwardly, the Neopixel library doesn't coexist with the DMX ISR
 	// A solution calls DMXSerial.init(DMXReceiver) here each time!
 	DMXSerial.init(DMXReceiver);
+
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
 	delay(100); // 100 ms
 
 	readDMXChannels(values,LEDCOUNT);	
-	if(values[0] > 0)
+	if(values[0] > 127)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
 		digitalWrite(YELLOW_LED, LOW);	
@@ -522,7 +529,6 @@ neopixelmain()
 void
 neopixellong()
 {
-#define LONGLEDCOUNT 128
 	int values[LONGLEDCOUNT];
 	// GF: Awkwardly, the Neopixel library doesn't coexist with the DMX ISR
 	// A solution calls DMXSerial.init(DMXReceiver) here each time!
@@ -531,11 +537,11 @@ neopixellong()
 	delay(100); // 100 ms
 
 	readDMXChannels(values,LEDCOUNT);	
-	if(values[0] > 0)
+	if(values[0] > 127)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
 		digitalWrite(YELLOW_LED, LOW);	
-
+ 
 	for(int i = 0;i < LEDCOUNT; i++) {
 		strip.setPixelColor(i,
 			strip.Color(
@@ -553,7 +559,7 @@ neopixellong()
  * Main stepper motor function                       *
  *   The red status LED monitors DMX (flashes)       *
  *   The yellow status LED set when rotation enabled *
- *   The green status LED set when index is reached  *
+ *   The green status LED set when indexing is used  *
  *                                                   *
  * The stepper motor is controlled from 4 slots      *
  * Slot 1: Rotation speed, this rotates when > 0     *
@@ -575,24 +581,38 @@ steppermain()
 
 	int16_t stepperindex = 0; // Target stepper position 
 
-  /* See if the motor needs to stop rotating (yellow LED off) */
-  /* Set yellow status LED on when rotation is enabled */
+  /* Setup index referencing, or disable indexed use if requested. */
+  /* Note: This happens even if the motor is not moving
+  /* A slot value of 255 records a new index reference position */
+  /* See if the indexing is being used (green LED on for indexed) */
+	if (values[STEPPER_INDEX_MODE] < 50) {
+    // Not in indexed mode
+    digitalWrite(GREEN_LED, LOW);
+  }
+  else {
+   // indexed mode
+    digitalWrite(GREEN_LED, HIGH);
+    if (values[STEPPER_INDEX_MODE] == 255) {
+			// We are  at the reference position
+      indexposition = values[STEPPER_INDEX_ROTATION] << 1; 
+		}
+  }
+
+  /* If the motor is not allowed to rotate (yellow LED off) */
   if (values[STEPPER_ROTATION_SPEED] == 0 || values[STEPPER_ROTATION_DIRECTION] == 0) {
 		stopmotor(stepperpins);
     digitalWrite(YELLOW_LED, LOW);
 		return;
 	}
-  else {
-		digitalWrite(YELLOW_LED, HIGH);
-    // Rotation was enabled, continue processing the stepper motor action ...
-  }
-
+  
+  // Rotation was enabled, continue processing the stepper motor action ...
+  /* Set yellow status LED on when rotation is enabled */
+	digitalWrite(YELLOW_LED, HIGH);
+  
   /* First see is indexing mode is enabled? */
 	if (values[STEPPER_INDEX_MODE] < 50 ) {
     /* This stepper motor is not using indexing */
-    /* The green status LED is set off when not indexing */
     /* Now rotate the stepper motor at the required speed */
-    digitalWrite(GREEN_LED, LOW);
 
 		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
@@ -605,16 +625,9 @@ steppermain()
      * 200...254 before the value that triggers indexing */
 		if (values[STEPPER_INDEX_MODE] >= 200
 				&& values[STEPPER_INDEX_MODE] <= 254)
-			return;
+			return; //paused
 
-    /* A value of 255 records a new index reference position */
-		if (values[STEPPER_INDEX_MODE] == 255) {
-			indexposition = 0; // We are already at the reference position
-			return;
-		}
-
-    /* This stepper motor has enabled indexing */
-    /* Now get the relative index to the referenece, and see if we need to move */
+    /* Now get the relative index to the reference, and see if we need to move */
 		stepperindex = values[STEPPER_INDEX_ROTATION] << 1;
 
     /* Check if motor is already at the indexed position */
@@ -623,10 +636,9 @@ steppermain()
 			 * Leave the motor free when we reach the index. If there is a load
 			 * on the motor (something heavy that will turn it) you may want to
 			 * hold the motor at the index instead.
-       * Set the green LED to on to show we have now reached the indexed position.
+       * The green LED should already be on.
 			 */
 			stopmotor(stepperpins);
-      digitalWrite(GREEN_LED, HIGH);
 			return;
 		}
 
