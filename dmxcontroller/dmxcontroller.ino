@@ -28,21 +28,22 @@
 
 /* Issues list to be completed by Aug 2023 */
 /* 	0. Fix serial conflict. (see below and Tom's Libaries)
-	1. DMX Timeout
-		1a. Check code for DMXTIMEOUT (1 sec)
   		1b. Check board.
   		2b. Update Lab Handbook - neopixel
     	5. Check both board revisions
      		5a Update firmware in production boards !!!
 */
 
-/* SERIAL CONFLICT to resolve -- GF
+/* NOTE: SERIAL CONFLICT exits in the on-line library, resolve using modifdied library -- GF
 https://github.com/mathertel/DMXSerial/tree/master
 The Arduino MEGA 2560 boards use the serial port 0 on pins 0 an 1.
 The vector numbers differ because you use the Mega board and not the UNO.
 On Mega you have the option to use the port 1 for DMX and the Serial for printing to the Monitor.
 see https://github.com/mathertel/DMXSerial/blob/master/src/DMXSerial_avr.h for details to enable DMX_USE_PORT1 and change your wiring.
 */
+
+/* Changes: This unmangles the logic in the stepper motor code */
+/* This creates a long neoxpixel mode */
 
 #include <DMXSerial.h>
 #include <Servo.h>
@@ -56,6 +57,8 @@ extern "C" {
 }
 
 #define DMXADDRESSMAX 513 	/* maximum number of channels read in a frame */
+
+/* Libary does not eturn DMXTIMEOUT correctly */
 #define DMXTIMEOUT 1000		/* One Second timeout to take receiver off-line */
 
 void controllermain(void);
@@ -66,6 +69,7 @@ void neopixelmain(void);
 void steppermain(void);
 void defaultprogram(void);
 void neopixellong(void);
+void printdipmode(void);
 
 void readDMXChannels(int *, uint16_t );
 void readStartDMXChannels(int *, uint16_t, uint16_t startaddr );
@@ -91,7 +95,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel
 	NEO_GRB + NEO_KHZ800 	/* Colour Byte order and Strip Speed */
 );
 
-/* This is the menu man for the board */
+/* This is the menu for the switch configuration */
 #define NUMPROGRAMS 8
 void (*programs[NUMPROGRAMS])(void) = {
 	controllermain, 	/* Mode 0 */
@@ -103,6 +107,21 @@ void (*programs[NUMPROGRAMS])(void) = {
 	defaultprogram,	/* Mode 6 */
 	neopixellong,	/* Mode 7 */
 };
+
+/* This is the menu as a list of programs */
+char *program_name[]= {
+	"DMX Controller ", 	/* Mode 0 */
+	"Digital Control",	/* Mode 1 */
+	"PWM Control    ",	/* Mode 2 */
+	"Servo Control  ",	/* Mode 3 */
+	"Pixel Control  ",	/* Mode 4 */
+	"Stepper Control",	/* Mode 5 */
+	" --- None ---  ",	/* Mode 6 */
+	"Long Pixel Cont.",	/* Mode 7 */
+};
+
+/* -------------------------------------------------------------------------- */
+
 
 void 
 setup()
@@ -134,15 +153,12 @@ setup()
 		pinMode(depins[i],OUTPUT);
 		digitalWrite(depins[i], HIGH);
 	}
-
 	for(int i = 0;i < PWMPINS_MAX; i++) {
 		pinMode(pwmpins[i], OUTPUT);
 	}
-
 	for(int i = 0;i < SERVOPINS_MAX; i++) {
 		pinMode(servopins[i], OUTPUT);
 	}
-
 	for(int i = 0;i < STEPPERPINS_MAX; i++) {
 		pinMode(stepperpins[i], OUTPUT);
 	}
@@ -150,32 +166,28 @@ setup()
 	Serial.begin(9600);
 
 	Serial.println("---------------------------------------------------------");
-	Serial.println("Build name: " GIT);
-	Serial.println("Board rev : " DMXBOARDREV);
+	Serial.println("Build name:  " GIT);
+	Serial.println("Board rev :  " DMXBOARDREV);
 	
-	Serial.print("DMX Address: b");
-	Serial.print(dipReadAddress(), BIN);
-	Serial.print(" d");
-	Serial.println(dipReadAddress(), DEC);
+	Serial.print("Servo pin: " );
+  Serial.print(SERVOPIN);
+  Serial.print(", Pot pin: ");
+	Serial.print( POT_PIN);
+	Serial.print(", PWM pin: " );
+  Serial.println( PWM1PIN);
 
-	Serial.print("Board mode:  b");
-	Serial.print(dipReadMode(), BIN);
-	Serial.print(" d");
-	Serial.println(dipReadMode(), DEC);
-
-	Serial.println("Red LED blinks when DMX data is received.");
-
-	/* Test routine for NEOPIXEL strip when enabled */
 #ifdef NEOPIXELDISPLAY
-	Serial.print("Board configured for NEOPIXEL on pin ");
-	Serial.println(STRIP_PIN);
+	/* Test routine for NEOPIXEL strip when enabled */
+	Serial.print("NEOPIXEL enabled, using pin: ");
+	Serial.print(STRIP_PIN);
+  Serial.println(" (Output test for address > 502 )");
 
 	strip.begin();	/* Initialize the WS2812 LED strip */
 	strip.show(); 	/* Set all pixels in strip to 'off' */
 
-	// Panel test executes for full (>511)
+	// Panel test executes for address > 502
 	if(dipReadAddress() > 502) {
-		Serial.println("Running panel test");
+		Serial.println("Running Neopixel test...");
 
 		strip.setPixelColor(0, strip.Color(255,255,255));
 		for(int i = 1; i < LEDCOUNT; i++) {
@@ -197,7 +209,8 @@ setup()
 		strip.show();
 	}
 #endif //NEOPIXELDISPLAY
-	
+	printdipmode();
+
 	Serial.println("---------------------------------------------------------");
 
 	DMXSerial.init(DMXReceiver);	/* initialise the DMX receive code */
@@ -220,6 +233,8 @@ loop()
 
 		if(newprogram != program) {		/* If the program changed */
 
+      printdipmode();
+
 			digitalWrite(GREEN_LED, HIGH);	/* Green board status LED */
 			digitalWrite(YELLOW_LED, LOW);	/* Yellow board status LED */
 
@@ -233,7 +248,7 @@ loop()
 					if(servos[i].attached())
 						servos[i].detach();
 
-			/* If we have started the test program, enable DMX control */
+			/* If we have started the control program, enable DMX control */
 			/* This sets the line driver to transmit and starts sending */
 			if(newprogram == controllermain) {
 				DMXSerial.init(DMXController);
@@ -256,29 +271,57 @@ loop()
 	if(program != NULL)
 		program();
 
-	/* Blink the red status LED if there is DMX data within our timeout.
- 	 * If not, hold the status red LED high, this is how commercial hardware works
+	/* Clear the red status LED if in controller mode
+   * otherwise the blink the red status LED when there is DMX data within our timeout.
+ 	 * If no data, set the status red LED high, this is how commercial hardware works.
  	 */
+  if(program == controllermain) {
+    digitalWrite(RED_LED, LOW);
+  } else {
+    if(DMXSerial.noDataSince() < DMXTIMEOUT) {
+      // Serial.println(DMXSerial.noDataSince()); // Enbale to trace idle time
+      OutputDisabled = false;
+      digitalWrite(RED_LED, led);
+      int now = millis();
+      if ( now - lastflash > 200) {
+        led = !led;
+        lastflash = now;
+      }
+    } else {
+      /* Outputs ought to be disabled here */
+      /* Currently no action taken */
+      digitalWrite(RED_LED, HIGH);
+      OutputDisabled = true;
+    }
+  }
+}
 
-	if(DMXSerial.noDataSince() < DMXTIMEOUT) {
-		OutputDisabled = false;
-		digitalWrite(RED_LED, led);
-		int now = millis();
-		if ( now - lastflash > 200) {
-			led = !led;
-			lastflash = now;
-		}
-	} else {
-		/* Outputs ought to be disabled here */
-		/* Currently no action taken */
-		digitalWrite(RED_LED, HIGH);
-		OutputDisabled = true;
-	}
+/* Read and print DMX address and mode from the DIP switches */
+void printdipmode()
+{
+  int address;
+  int mode;
+
+  address = dipReadAddress();
+  Serial.print("DMX Address: ");
+		Serial.print(address, DEC);
+    Serial.print(" (b");
+  	Serial.print(address, BIN);
+
+  Serial.print(") ");
+
+  mode = dipReadMode();
+  Serial.print("Board mode: ");
+ 	Serial.print(mode, DEC);
+	Serial.print(" (b");
+  Serial.print(mode, BIN);
+  Serial.print(") ");
+  Serial.println( program_name[mode] );
 }
 
 /* ************************************************* */
 /* Program to execute when no valid mode is selected :
- * Green LED flashes */
+ * The green LED flashes */
 void
 defaultprogram()
 {
@@ -297,9 +340,10 @@ defaultprogram()
 /* Program to execute in controller mode             */
 /* Outputs low order DIP switches output to D9 socket*/
 /* Control waveform sent on DMX output               */
-/* - frame is static if low order DIP switch is 0    */
-/* = frame sets slot for switch with value from pot  */
+/* 1. frame is static if low order DIP switch is 0   */
+/* 2. frame sets slot for switch with value from pot */
 /* Yellow LED indicates if pot > 128                 */
+
 void 
 controllermain()
 {
@@ -308,36 +352,44 @@ controllermain()
 
 	static int lastAddress;
 
-	/* read pot value and set the yellow status LED when > 128 */
+  /*  RED LED is set off in main, because no DMX Input in this mode */
+
+  /* If the address has changed, then clear slots at the last address */
+	if(dmxAddress != lastAddress) {
+		if(lastAddress == 0x00) {
+      /* Overwrite the static frame contents when address was previously zero */
+			DMXSerial.write(1, 0x00);
+			DMXSerial.write(2, 0x00);
+			DMXSerial.write(3, 0x00);
+			DMXSerial.write(4, 0x00);
+		} else {
+      /* Reset last slot at last addresss to zero */
+			DMXSerial.write(lastAddress, 0x00);
+		}
+	}
+	/* Read the pot value and set the yellow status LED only when > 128 */
 	reading = (uint16_t)analogRead(POT_PIN) / 4; 
 	if(reading > 128)
 		digitalWrite(YELLOW_LED, HIGH);
 	else
 		digitalWrite(YELLOW_LED, LOW);
 
-	/* If the address has changed, clear the last address */
-	if(dmxAddress != lastAddress) {
-		if(lastAddress == 0x00) {
-			DMXSerial.write(1, 0x00);
-			DMXSerial.write(2, 0x00);
-			DMXSerial.write(3, 0x00);
-			DMXSerial.write(4, 0x00);
-		} else {
-			DMXSerial.write(lastAddress, 0x00);
-		}
-	}
-
-	/* If address is zero, send a recognisable pattern of 4 slots */
+  /* Update the requires lots with new data  */
+	/* If address is zero, send a recognisable pattern of 4 slots & set green LED off */
+  /* Else if not zero, set the slot value at the slected address & set green LED on */
 	if(dmxAddress == 0) {
 		DMXSerial.write(1, 0x55); /* Slot 1 */
 		DMXSerial.write(2, 0xFF); /* Slot 2 */
 		DMXSerial.write(3, 0x0F); /* Slot 3 */
 		DMXSerial.write(4, 0xF0); /* Slot 4 */
+    digitalWrite(GREEN_LED, LOW);
 	} else {
 		DMXSerial.write(dmxAddress, reading);
+    digitalWrite(GREEN_LED, HIGH);
 	}
 	lastAddress = dmxAddress;
 
+  /* For debugging set the output port */
 	/* Output a copy of the DIP switch pattern on the output ports */
 	for(int i = 0;i < DEPINS_MAX; i++) {
 		int status = !(dmxAddress & value);
@@ -345,18 +397,12 @@ controllermain()
 		value = value << 1;
 	}
 
-	/*	
-	 *  The following code checks the bit max, then sets accordingly. For
-	 *  some reason the bit mask does not work. I think gcc might be reducing the
-	 *  size of the int.
-	 *	value = (1 << 8);
-	 *	digitalWrite(GREEN_LED, (dmxAddress & value) );	
-	 */
-	value = digitalRead(DIP9) << 8;
-	if(value > 0)
-		digitalWrite(GREEN_LED, HIGH);	
-	else
-		digitalWrite(GREEN_LED, LOW);	
+	/* For debugging set the green LED from the last bit of address */
+	// value = digitalRead(DIP9) << 8;
+	// if(value > 0)
+	//	digitalWrite(GREEN_LED, HIGH);	
+	//else
+	//	digitalWrite(GREEN_LED, LOW);	
 }
 
 /* ************************************************* */
@@ -465,9 +511,9 @@ neopixelmain()
 	strip.show();
 }
 
-/* neopixellong */
 /* ************************************************* */
-/* Varient of program to execute when WS2812 mode selected       */
+/* neopixellong                                      */
+/* Varient  to execute when WS2812 mode selected     */
 /* outputs TDM waveform for each channel value onto a*/
 /* serial WS2812 port, one channel per LED           */
 /* channel value is mapped via a colour lookup table */
@@ -502,7 +548,22 @@ neopixellong()
 	strip.show();
 }
 
-/* Main stepper motor function */
+/* ************************************************* *
+ * steppermain                                       *
+ * Main stepper motor function                       *
+ *   The red status LED monitors DMX (flashes)       *
+ *   The yellow status LED set when rotation enabled *
+ *   The green status LED set when index is reached  *
+ *                                                   *
+ * The stepper motor is controlled from 4 slots      *
+ * Slot 1: Rotation speed, this rotates when > 0     *
+ * Slot 2: Direction: forward <=128, reverse > 128   *
+ * Slot 3: Index mode disabled = 0                   *
+ *         Indexing enabled = 50-200                 *
+ *         Set index reference = 255                 *
+ * Slot 4: Set the index angle (0 to 360 degrees)    */
+
+
 void
 steppermain()
 {
@@ -512,20 +573,26 @@ steppermain()
 	int values[STEPPERCHANNELS];	/* Read all slots needed */
 	readDMXChannels(values, STEPPERCHANNELS);
 
-	int validstepperindex = 0;
-	int16_t stepperindex = 0;
+	int16_t stepperindex = 0; // Target stepper position 
 
-	if(values[0] > 0)
+  /* See if the motor needs to stop rotating (yellow LED off) */
+  /* Set yellow status LED on when rotation is enabled */
+  if (values[STEPPER_ROTATION_SPEED] == 0 || values[STEPPER_ROTATION_DIRECTION] == 0) {
+		stopmotor(stepperpins);
+    digitalWrite(YELLOW_LED, LOW);
+		return;
+	}
+  else {
 		digitalWrite(YELLOW_LED, HIGH);
-	else
-		digitalWrite(YELLOW_LED, LOW);
+    // Rotation was enabled, continue processing the stepper motor action ...
+  }
 
-	if (values[STEPPER_INDEX_MODE] == 0 ) {
-		if (values[STEPPER_ROTATION_SPEED] == 0 ||
-			values[STEPPER_ROTATION_DIRECTION] == 0) {
-			stopmotor(stepperpins);
-			return;
-		}
+  /* First see is indexing mode is enabled? */
+	if (values[STEPPER_INDEX_MODE] < 50 ) {
+    /* This stepper motor is not using indexing */
+    /* The green status LED is set off when not indexing */
+    /* Now rotate the stepper motor at the required speed */
+    digitalWrite(GREEN_LED, LOW);
 
 		clockwise = values[STEPPER_ROTATION_DIRECTION] > 131 ? 1 : 0;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
@@ -533,44 +600,44 @@ steppermain()
 		/* TODO: missing direction-based step speed shift */
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	} else {
-		digitalWrite(GREEN_LED, LOW);
-		if ((values[STEPPER_INDEX_MODE] > 0 && values[STEPPER_INDEX_MODE] <= 50)
-			|| (values[STEPPER_INDEX_MODE] >= 200
-				&& values[STEPPER_INDEX_MODE] <= 254))
+    /* Index mode is being used for this stepper motor */
+    /* So, check if index movement is enabled, there are null values
+     * 200...254 before the value that triggers indexing */
+		if (values[STEPPER_INDEX_MODE] >= 200
+				&& values[STEPPER_INDEX_MODE] <= 254)
 			return;
 
+    /* A value of 255 records a new index reference position */
 		if (values[STEPPER_INDEX_MODE] == 255) {
-			indexposition = 0;
+			indexposition = 0; // We are already at the reference position
 			return;
 		}
 
-		if ((values[STEPPER_INDEX_MODE] >= 50 &&
-			values[STEPPER_INDEX_MODE] <= 200 )) {
+    /* This stepper motor has enabled indexing */
+    /* Now get the relative index to the referenece, and see if we need to move */
+		stepperindex = values[STEPPER_INDEX_ROTATION] << 1;
 
-			stepperindex = values[STEPPER_INDEX_ROTATION] << 1;
-			digitalWrite(GREEN_LED, HIGH);
-		}
-
+    /* Check if motor is already at the indexed position */
 		if (indexposition == stepperindex) {
 			/*
 			 * Leave the motor free when we reach the index. If there is a load
 			 * on the motor (something heavy that will turn it) you may want to
 			 * hold the motor at the index instead.
+       * Set the green LED to on to show we have now reached the indexed position.
 			 */
 			stopmotor(stepperpins);
-			return;
-		}
-		if (values[STEPPER_ROTATION_SPEED] == 0) {
-			stopmotor(stepperpins);
+      digitalWrite(GREEN_LED, HIGH);
 			return;
 		}
 
+    /* Otherwise the motor now needs to move towards the required offset to the index */
 		clockwise = indexposition > stepperindex? 0 : 1;
 		stepdelay = ((255 - values[STEPPER_ROTATION_SPEED]) + 1)  * 128;
 		stepmotor(stepperpins, motorsteps, clockwise, stepdelay);
 	}
 }
 
+/* Function to move the stepper motor */
 void
 stepmotor(int *pins, int *steps, int direction, int stepdelay)
 {
@@ -605,6 +672,7 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 	}
 }
 
+/* Function to move the stepper motor */
 void stopmotor(int *pins)
 {
 
@@ -627,6 +695,8 @@ readDMXChannels(int *dmxvalues, uint16_t dmxchannels)
 	for(uint16_t i = dmxAddress, j = 0; i < max; i++, j++)
 		dmxvalues[j] = DMXSerial.read(i);
 }
+
+/* ------------------------ RGB Routines ------------------------ */ 
 
 /* Interpret a channel value as a RED channel for WS2812 *
  * The red value is stored in the top three bits of value.
@@ -676,3 +746,5 @@ readGreen(uint8_t value)
 	else
 		return green | 0x1F;
 }
+
+
