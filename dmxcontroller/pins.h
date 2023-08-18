@@ -44,9 +44,8 @@
 /* WS2812 TDM strip configuration */
 #ifdef NEOPIXELDISPLAY
 	// No of LEDs is a strip - Long strip have timing implications
-	//#define LEDCOUNT 256 
 	#define LEDCOUNT 16 
-  #define LONGLEDCOUNT 256 
+  #define LONGLEDCOUNT 128 
 	// #define STRIP_PIN 22
   #define STRIP_PIN 9
 #endif
