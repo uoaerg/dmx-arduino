@@ -26,21 +26,19 @@
  *
  */
 
-/* Issues list to be completed by Aug 2023 */
-/* 	0. Fix serial conflict. (see below and Tom's Libaries)
-  		1b. Check board.
-  		2b. Update Lab Handbook - neopixel
-    	5. Check both board revisions
-     		5a Update firmware in production boards !!!
-*/
+/* Rewrite completed by Aug 2023 */
 
-/* SERIAL CONFLICT exits in on-line library, resolve using modifdied library -- GF
+
+/* NOTE USE INCLUDED LIBRARYIES ONLY,
+A SERIAL CONFLICT exists in the on-line library,
 https://github.com/mathertel/DMXSerial/tree/master
 The Arduino MEGA 2560 boards use the serial port 0 on pins 0 an 1.
 The vector numbers differ because you use the Mega board and not the UNO.
 On Mega you have the option to use the port 1 for DMX and the Serial for printing to the Monitor.
-see https://github.com/mathertel/DMXSerial/blob/master/src/DMXSerial_avr.h for details to enable DMX_USE_PORT1 and change your wiring.
-*/
+see https://github.com/mathertel/DMXSerial/blob/master/src/DMXSerial_avr.h 
+for details to enable DMX_USE_PORT1 and change your wiring.
+The hack here is to reload DMX after each pixel load.
+Aug 2023 GF */
 
 #include <DMXSerial.h>
 #include <Servo.h>
@@ -87,7 +85,7 @@ int16_t indexposition = 0;
 /* each pixel is programmed in a chain with 3x 8-bit colour values */
 Adafruit_NeoPixel strip = Adafruit_NeoPixel
 (
-	LEDCOUNT,		/* Maximum number of LEDs on the strip */
+	LONGLEDCOUNT,		/* Maximum number of LEDs on the strip - use the longest size */
 	STRIP_PIN,		/* Arduino output pin used for control */
 	NEO_GRB + NEO_KHZ800 	/* Colour Byte order and Strip Speed */
 );
@@ -176,7 +174,8 @@ setup()
 
 #ifdef NEOPIXELDISPLAY
 	/* Test routine for NEOPIXEL strip when enabled */
-	Serial.print("NEOPIXEL enabled, using pin: ");
+  Serial.print(LONGLEDCOUNT);
+	Serial.print(" NeoPixels enabled, using pin: ");
 	Serial.print(STRIP_PIN);
 
 	strip.begin();	/* Initialize the WS2812 LED strip */
@@ -185,10 +184,10 @@ setup()
 	// Panel test executes for address > 502
 	if (dipReadAddress() > 502) {
 		Serial.print(" Running Neopixel test for ");
-    Serial.print(LEDCOUNT);
+    Serial.print(LONGLEDCOUNT);
     Serial.println (" pixels.");
 		strip.setPixelColor(0, strip.Color(255,255,255));
-		for(int i = 1; i < LEDCOUNT; i++) {
+		for(int i = 1; i < LONGLEDCOUNT; i++) {
 			strip.setPixelColor(i,
 				strip.Color(
 					random(5,255),
@@ -498,7 +497,7 @@ neopixelmain()
 	DMXSerial.init(DMXReceiver);
 
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
-	delay(100); // 100 ms
+	delay(75); // 100 ms ... depends on refersh rate
 
 	readDMXChannels(values,LEDCOUNT);	
 	if(values[0] > 127)
@@ -534,15 +533,15 @@ neopixellong()
 	// A solution calls DMXSerial.init(DMXReceiver) here each time!
 	DMXSerial.init(DMXReceiver);
 	// We might need a pause here .. for the initialisation and to grab a DMX frame //
-	delay(100); // 100 ms
+	delay(75); // 100 ms ... depends on refersh rate
 
-	readDMXChannels(values,LEDCOUNT);	
+	readDMXChannels(values,LONGLEDCOUNT);	
 	if(values[0] > 127)
 		digitalWrite(YELLOW_LED, HIGH);	
 	else
 		digitalWrite(YELLOW_LED, LOW);	
  
-	for(int i = 0;i < LEDCOUNT; i++) {
+	for(int i = 0;i < LONGLEDCOUNT; i++) {
 		strip.setPixelColor(i,
 			strip.Color(
 				readRed(values[i]),
