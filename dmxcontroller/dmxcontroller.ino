@@ -1,4 +1,5 @@
-/*-
+/* dmx controller */
+/*
  * Copyright (c) 2017 Tom Jones, UoA tom@erg.abdn.ac.uk
  * Copyright (c) 2023 Gorry Fairhurst, UoA gorry@erg.abdn.ac.uk
  * All rights reserved.
@@ -134,6 +135,7 @@ setup()
 	pinMode(STRIP_PIN, OUTPUT);
 
 	pinMode(POT_PIN, INPUT);
+	pinMode(POT_PIN2, INPUT);
 
 	/* DIP switch input of address and mode */
  	for(int i = 0; i < DIPMAX; i++) {
