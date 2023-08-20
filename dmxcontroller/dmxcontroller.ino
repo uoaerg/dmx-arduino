@@ -168,6 +168,7 @@ setup()
 
 	Serial.begin(9600);
 
+	Serial.println("");
 	Serial.println("---------------------------------------------------------");
 	Serial.println("Build name:  " GIT);
 	Serial.println("Board rev :  " DMXBOARDREV);
@@ -181,9 +182,9 @@ setup()
   	Serial.print(",");
   	Serial.print(POT_PIN2);
   	Serial.print("}, PWM pins: {" );
-  	Serial.print(PWM1PIN);
+  	Serial.print( PWM1PIN );
   	Serial.print(",");
-  	Serial.print(PWM2PIN);
+  	Serial.print( PWM2PIN ); 
   	Serial.println("}");
 
 #ifdef NEOPIXELDISPLAY
@@ -593,32 +594,45 @@ steppermain()
 {
 	uint16_t stepdelay = 25600;
 	int clockwise = 1;
-	int local_use = false;
-
-	int values[STEPPERCHANNELS];	/* Read all slots needed */
+	int values[STEPPERCHANNELS];	/* Store values of all slots needed */
+	int16_t stepperindex = 0; // Target stepper position 
+	int local_use = false; // enable or disable the demo functions - note current hardware is rev-II
+  	uint16_t local_speed;
+ 	uint16_t local_index;
 	readDMXChannels(values, STEPPERCHANNELS);
 
-	/* Read the values from switches if needed */
-	/* Need to remove printing when finished. */
+	/*/ ----  This is onlky used with the demo unit
+	/* Read the values from pots if needed */
+  /* values are 0..255; fully rotated = off. */
+	/* DMX needed to set an index. */
 	if (local_use) {
-		values[STEPPER_ROTATION_SPEED] = (uint16_t)analogRead(POT_PIN) / 4; 
-		values[STEPPER_INDEX_ROTATION] = (uint16_t)analogRead(POT_PIN2) / 4; 
-	 	values[STEPPER_INDEX_MODE] = (uint16_t)analogRead(POT_PIN3) / 4; /* 0,128,255 */
-	 	values[STEPPER_ROTATION_DIRECTION]  = (uint16_t)analogRead(POT_PIN4) / 4; /* 0,128,255 */
-
-		Serial.print("STEPPER_ROTATION_SPEED: ");
-		Serial.println( values[STEPPER_ROTATION_SPEED] );
-	 	Serial.print("STEPPER_INDEX_ROTATION: ");
-	 	Serial.println( values[STEPPER_INDEX_ROTATION] );
-	 	Serial.print("STEPPER_INDEX_MODE: ");
-	 	Serial.println( values[STEPPER_INDEX_MODE] );
-	 	Serial.print("STEPPER_ROTATION_DIRECTION: ");
-	 	Serial.println( values[STEPPER_ROTATION_DIRECTION] );
-		Serial.print("STEPPER SENSOR: ");
-		Serial.println( SENS_PIN5 );
-	}
+		local_speed = (uint16_t)analogRead(POT_PIN2) / 2; 
+    if (local_speed < 320) {
+      /* Not fully turned, value will over-ride the speed from DMX */
+      if (local_speed <= 255 ) {
+        values[STEPPER_ROTATION_SPEED] = local_speed; 
+      } else 
+      {
+        values[STEPPER_ROTATION_SPEED] = 255;
+      }
+      values[STEPPER_ROTATION_DIRECTION] = 127; /* Also enable rotation */
+	  }
+   
+	  local_index = (uint16_t)analogRead(POT_PIN) / 2; 
+    if (local_index < 320) {
+      /* Will over-ride the speed from DMX */
+      /* Note index needs to be set from DMX */
+      if (local_index <= 255 ) {
+        values[STEPPER_INDEX_ROTATION] = local_index; 
+      } else 
+      {
+        values[STEPPER_INDEX_ROTATION]= 255;
+      }
+    }
+ 
+	} 
+  //---- Remainder is the normal stepper motor control
 	
-	int16_t stepperindex = 0; // Target stepper position 
 
   /* Setup index referencing, or disable indexed use if requested. */
   /* Note: This happens even if the motor is not moving
