@@ -43,6 +43,7 @@
 #define POT_PIN2   A4
 #define POT_PIN3   A5
 #define POT_PIN4   A6
+#define SENS_PIN5  A7 
 
 #define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
 /* WS2812 TDM strip configuration */
