@@ -1,3 +1,5 @@
+#include <DMXSerial.h>
+
 /* dmx controller */
 /*
  * Copyright (c) 2017 Tom Jones, UoA tom@erg.abdn.ac.uk
@@ -171,9 +173,9 @@ setup()
 	Serial.println("Board rev :  " DMXBOARDREV);
 	
 	Serial.print("Servo pins: {" );
-  	Serial.print(SERVOPIN1);
+  	Serial.print(SERVO1PIN);
   	Serial.print(",");
-  	Serial.print(SERVOPIN2);
+  	Serial.print(SERVO2PIN);
  	Serial.print("}, Pot pins: {");
  	Serial.print( POT_PIN );
   	Serial.print(",");
@@ -182,7 +184,7 @@ setup()
   	Serial.print(PWM1PIN);
   	Serial.print(",");
   	Serial.print(PWM2PIN);
-  	Serial.println(});
+  	Serial.println("}");
 
 #ifdef NEOPIXELDISPLAY
 	/* Test routine for NEOPIXEL strip when enabled */
@@ -794,5 +796,4 @@ readGreen(uint8_t value)
 	else
 		return green | 0x1F;
 }
-
 
