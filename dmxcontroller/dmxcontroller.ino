@@ -135,7 +135,9 @@ setup()
 	pinMode(STRIP_PIN, OUTPUT);
 
 	pinMode(POT_PIN, INPUT);
-	pinMode(POT_PIN2, INPUT);
+	pinMode(POT_PIN2, INPUT); // GF
+	pinMode(POT_PIN3, INPUT); // GF
+	pinMode(POT_PIN4, INPUT); // Gf
 
 	/* DIP switch input of address and mode */
  	for(int i = 0; i < DIPMAX; i++) {
