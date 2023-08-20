@@ -138,6 +138,7 @@ setup()
 	pinMode(POT_PIN2, INPUT); // GF
 	pinMode(POT_PIN3, INPUT); // GF
 	pinMode(POT_PIN4, INPUT); // Gf
+	pinMode(SENS_PIN5, INPUT); // GF - sensor input
 
 	/* DIP switch input of address and mode */
  	for(int i = 0; i < DIPMAX; i++) {
@@ -170,18 +171,18 @@ setup()
 	Serial.println("Board rev :  " DMXBOARDREV);
 	
 	Serial.print("Servo pins: {" );
-  Serial.print(SERVOPIN1);
-  Serial.print(",");
-  Serial.print(SERVOPIN2);
-  Serial.print("}, Pot pins: {");
-  Serial.print( POT_PIN );
-  Serial.print(",");
-  Serial.print(POT_PIN2);
-  Serial.print("}, PWM pins: {" );
-  Serial.print(PWM1PIN);
-  Serial.print(",");
-  Serial.print(PWM2PIN);
-  Serial.println(});
+  	Serial.print(SERVOPIN1);
+  	Serial.print(",");
+  	Serial.print(SERVOPIN2);
+ 	Serial.print("}, Pot pins: {");
+ 	Serial.print( POT_PIN );
+  	Serial.print(",");
+  	Serial.print(POT_PIN2);
+  	Serial.print("}, PWM pins: {" );
+  	Serial.print(PWM1PIN);
+  	Serial.print(",");
+  	Serial.print(PWM2PIN);
+  	Serial.println(});
 
 #ifdef NEOPIXELDISPLAY
 	/* Test routine for NEOPIXEL strip when enabled */
@@ -611,6 +612,8 @@ steppermain()
 	 	Serial.println( values[STEPPER_INDEX_MODE] );
 	 	Serial.print("STEPPER_ROTATION_DIRECTION: ");
 	 	Serial.println( values[STEPPER_ROTATION_DIRECTION] );
+		Serial.print("STEPPER SENSOR: ");
+		Serial.println( SENS_PIN5 );
 	}
 	
 	int16_t stepperindex = 0; // Target stepper position 
