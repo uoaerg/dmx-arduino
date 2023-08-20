@@ -37,8 +37,10 @@
 #define YELLOW_LED A1
 #define RED_LED    A2
 
-/* Potentiometer input for input of slot value in test mode */
+/* Potentiometer input for input of slot value in controller mode */
+/* Second pot for specofic builds */
 #define POT_PIN    A3
+#define POT_PIN2   A4
 
 #define NEOPIXELDISPLAY     /* Uncomment to enable NEOPIXEL display */
 /* WS2812 TDM strip configuration */
