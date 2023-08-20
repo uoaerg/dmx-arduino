@@ -113,7 +113,7 @@ char *program_name[]= {
 	"Servo Control  ",	/* Mode 3  011 msb: 110 */
 	"Pixel Control  ",	/* Mode 4  100 msb: 001 */
 	"Stepper Control",	/* Mode 5  101 msb: 101*/
-	" --- None ---  ",	/* Mode 6  110 msb: 011 */
+	" --- Test ---  ",	/* Mode 6  110 msb: 011 */
 	"Long Pixel Cont.",	/* Mode 7  111 msb: 111 */
 };
 
@@ -174,7 +174,7 @@ setup()
   Serial.print("}, Pot pins: {");
   Serial.print( POT_PIN );
   Serial.print(",");
-  Serial.print(POTPIN2);
+  Serial.print(POT_PIN2);
   Serial.print("}, PWM pins: {" );
   Serial.print(PWM1PIN);
   Serial.print(",");
@@ -330,6 +330,7 @@ void printdipmode()
 /* ************************************************* */
 /* Program to execute when no valid mode is selected :
  * The green LED flashes */
+
 void
 defaultprogram()
 {
@@ -341,7 +342,13 @@ defaultprogram()
 		led = !led;
 		lasttoggle = now;
 	}
+	// Try setting each output pin for testing
+	// digitalWrite(SERVOPIN1, led);
+  	// digitalWrite(SERVOPIN2, led);
+	// digitalWrite(PWM1PIN,led);
+  	// digitalWrite(PWM2PIN, led);
 	digitalWrite(GREEN_LED, led); 
+	digitalWrite(YELLOW_LED, !led);
 }
 
 /* ************************************************* */
@@ -382,9 +389,8 @@ controllermain()
 	else
 		digitalWrite(YELLOW_LED, LOW);
 
-  /* Update the requires lots with new data  */
-	/* If address is zero, send a recognisable pattern of 4 slots & set green LED off */
-  /* Else if not zero, set the slot value at the slected address & set green LED on */
+ 	/* If address is zero, send a recognisable pattern of 4 slots & set green LED off */
+  	/* Else if not zero, set the slot value at the slected address & set green LED on */
 	if(dmxAddress == 0) {
 		DMXSerial.write(1, 0x55); /* Slot 1 */
 		DMXSerial.write(2, 0xFF); /* Slot 2 */
@@ -577,7 +583,6 @@ neopixellong()
  *         Set index reference = 255                 *
  * Slot 4: Set the index angle (0 to 360 degrees)    */
 
-
 void
 steppermain()
 {
@@ -587,6 +592,22 @@ steppermain()
 	int values[STEPPERCHANNELS];	/* Read all slots needed */
 	readDMXChannels(values, STEPPERCHANNELS);
 
+	/* Read the values from switches if needed */
+	// if (local_use) {
+	// values[STEPPER_ROTATION_SPEED] = (uint16_t)analogRead(POT_PIN) / 4; 
+	// Serial.print("STEPPER_ROTATION_SPEED: ");
+	// Serial.println( values[STEPPER_ROTATION_SPEED] );
+	// values[STEPPER_INDEX_ROTATION] = (uint16_t)analogRead(POT_PIN2) / 4; 
+	// Serial.print("STEPPER_INDEX_ROTATION: ");
+	// Serial.println( values[STEPPER_INDEX_ROTATION] );
+	// values[STEPPER_INDEX_MODE] = (uint16_t)analogRead(POT_PIN3) / 4; /* 0,128,255 */
+	// Serial.print("STEPPER_INDEX_MODE: ");
+	// Serial.println( values[STEPPER_INDEX_MODE] );
+	// values[STEPPER_ROTATION_DIRECTION]  = (uint16_t)analogRead(POT_PIN4) / 4; /* 0,128,255 */
+	// Serial.print("STEPPER_ROTATION_DIRECTION: ");
+	// Serial.println( values[STEPPER_ROTATION_DIRECTION] );
+	//}
+	
 	int16_t stepperindex = 0; // Target stepper position 
 
   /* Setup index referencing, or disable indexed use if requested. */
@@ -695,7 +716,6 @@ stepmotor(int *pins, int *steps, int direction, int stepdelay)
 /* Function to move the stepper motor */
 void stopmotor(int *pins)
 {
-
 		digitalWrite(pins[0], LOW);
 		digitalWrite(pins[1], LOW);
 		digitalWrite(pins[2], LOW);
