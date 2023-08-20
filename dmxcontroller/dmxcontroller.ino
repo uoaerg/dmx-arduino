@@ -590,25 +590,28 @@ steppermain()
 {
 	uint16_t stepdelay = 25600;
 	int clockwise = 1;
+	int local_use = false;
 
 	int values[STEPPERCHANNELS];	/* Read all slots needed */
 	readDMXChannels(values, STEPPERCHANNELS);
 
 	/* Read the values from switches if needed */
-	// if (local_use) {
-	// values[STEPPER_ROTATION_SPEED] = (uint16_t)analogRead(POT_PIN) / 4; 
-	// Serial.print("STEPPER_ROTATION_SPEED: ");
-	// Serial.println( values[STEPPER_ROTATION_SPEED] );
-	// values[STEPPER_INDEX_ROTATION] = (uint16_t)analogRead(POT_PIN2) / 4; 
-	// Serial.print("STEPPER_INDEX_ROTATION: ");
-	// Serial.println( values[STEPPER_INDEX_ROTATION] );
-	// values[STEPPER_INDEX_MODE] = (uint16_t)analogRead(POT_PIN3) / 4; /* 0,128,255 */
-	// Serial.print("STEPPER_INDEX_MODE: ");
-	// Serial.println( values[STEPPER_INDEX_MODE] );
-	// values[STEPPER_ROTATION_DIRECTION]  = (uint16_t)analogRead(POT_PIN4) / 4; /* 0,128,255 */
-	// Serial.print("STEPPER_ROTATION_DIRECTION: ");
-	// Serial.println( values[STEPPER_ROTATION_DIRECTION] );
-	//}
+	/* Need to remove printing when finished. */
+	if (local_use) {
+		values[STEPPER_ROTATION_SPEED] = (uint16_t)analogRead(POT_PIN) / 4; 
+		values[STEPPER_INDEX_ROTATION] = (uint16_t)analogRead(POT_PIN2) / 4; 
+	 	values[STEPPER_INDEX_MODE] = (uint16_t)analogRead(POT_PIN3) / 4; /* 0,128,255 */
+	 	values[STEPPER_ROTATION_DIRECTION]  = (uint16_t)analogRead(POT_PIN4) / 4; /* 0,128,255 */
+
+		Serial.print("STEPPER_ROTATION_SPEED: ");
+		Serial.println( values[STEPPER_ROTATION_SPEED] );
+	 	Serial.print("STEPPER_INDEX_ROTATION: ");
+	 	Serial.println( values[STEPPER_INDEX_ROTATION] );
+	 	Serial.print("STEPPER_INDEX_MODE: ");
+	 	Serial.println( values[STEPPER_INDEX_MODE] );
+	 	Serial.print("STEPPER_ROTATION_DIRECTION: ");
+	 	Serial.println( values[STEPPER_ROTATION_DIRECTION] );
+	}
 	
 	int16_t stepperindex = 0; // Target stepper position 
 
