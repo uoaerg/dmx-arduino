@@ -165,12 +165,19 @@ setup()
 	Serial.println("Build name:  " GIT);
 	Serial.println("Board rev :  " DMXBOARDREV);
 	
-	Serial.print("Servo pin: " );
-  Serial.print(SERVOPIN);
-  Serial.print(", Pot pin: ");
-	Serial.print( POT_PIN);
-	Serial.print(", PWM pin: " );
-  Serial.println( PWM1PIN);
+	Serial.print("Servo pins: {" );
+  Serial.print(SERVOPIN1);
+  Serial.print(",");
+  Serial.print(SERVOPIN2);
+  Serial.print("}, Pot pins: {");
+  Serial.print( POT_PIN );
+  Serial.print(",");
+  Serial.print(POTPIN2);
+  Serial.print("}, PWM pins: {" );
+  Serial.print(PWM1PIN);
+  Serial.print(",");
+  Serial.print(PWM2PIN);
+  Serial.println(});
 
 #ifdef NEOPIXELDISPLAY
 	/* Test routine for NEOPIXEL strip when enabled */
