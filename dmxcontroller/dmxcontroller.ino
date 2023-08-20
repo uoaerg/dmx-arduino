@@ -113,7 +113,7 @@ char *program_name[]= {
 	"Servo Control  ",	/* Mode 3  011 msb: 110 */
 	"Pixel Control  ",	/* Mode 4  100 msb: 001 */
 	"Stepper Control",	/* Mode 5  101 msb: 101*/
-	" --- Test ---  ",	/* Mode 6  110 msb: 011 */
+	" --- None ---  ",	/* Mode 6  110 msb: 011 */
 	"Long Pixel Cont.",	/* Mode 7  111 msb: 111 */
 };
 
