@@ -122,8 +122,7 @@ char *program_name[]= {
 /* -------------------------------------------------------------------------- */
 
 
-void 
-setup()
+void setup(void)
 {
 
   /* Configure pins */
