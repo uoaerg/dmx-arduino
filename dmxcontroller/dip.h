@@ -1,4 +1,5 @@
-/*-
+ /* dip.h */
+ /*
  * Copyright (c) 2017 Tom Jones tom@erg.abdn.ac.uk
  * Copyright (c) 2023 G Fairhurst gorry@erg.abdn.ac.uk
 
